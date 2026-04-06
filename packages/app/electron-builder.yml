@@ -41,7 +41,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   artifactName: ${productName}-${version}-${os}-${arch}-setup.${ext}
 
-publish:
-  provider: github
-  owner: ${GH_OWNER:-chenweimin}
-  repo: ${GH_REPO:-english-studio}
+# GitHub Actions 用 artifact + action-gh-release 上传；YAML 不会展开 bash 的 ${VAR:-default}，
+# 若此处写 provider: github 会在打 tag 时隐式发布并生成错误的 API 路径。
+# 需要本机发布到 GitHub 时：配置 package.json repository 后执行 electron-builder --publish always
+publish: null
