@@ -8,8 +8,6 @@ directories:
 
 files:
   - out/**
-  - "!node_modules/**/*"
-  - node_modules/better-sqlite3/**
 
 asarUnpack:
   - node_modules/better-sqlite3/**
