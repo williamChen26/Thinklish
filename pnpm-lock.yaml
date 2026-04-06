@@ -26,46 +26,25 @@ importers:
 
   packages/app:
     dependencies:
+      better-sqlite3:
+        specifier: ^12.8.0
+        version: 12.8.0
+      jsdom:
+        specifier: ^29.0.1
+        version: 29.0.1
+    devDependencies:
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
+      '@swc/core':
+        specifier: ^1.15.24
+        version: 1.15.24
       '@thinklish/core':
         specifier: workspace:*
         version: link:../core
       '@thinklish/shared':
         specifier: workspace:*
         version: link:../shared
-      better-sqlite3:
-        specifier: ^12.8.0
-        version: 12.8.0
-      clsx:
-        specifier: ^2.1.0
-        version: 2.1.1
-      electron-updater:
-        specifier: ^6.8.3
-        version: 6.8.3
-      jsdom:
-        specifier: ^29.0.1
-        version: 29.0.1
-      react:
-        specifier: ^18.3.0
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.3.0
-        version: 18.3.1(react@18.3.1)
-      react-markdown:
-        specifier: ^10.1.0
-        version: 10.1.0(@types/react@18.3.28)(react@18.3.1)
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1
-      tailwind-merge:
-        specifier: ^2.5.0
-        version: 2.6.1
-    devDependencies:
-      '@swc/core':
-        specifier: ^1.15.24
-        version: 1.15.24
       '@types/better-sqlite3':
         specifier: ^7.6.0
         version: 7.6.13
@@ -84,18 +63,39 @@ importers:
       autoprefixer:
         specifier: ^10.4.0
         version: 10.4.27(postcss@8.5.8)
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.1
       electron:
         specifier: ^40.8.5
         version: 40.8.5
       electron-builder:
         specifier: ^26.8.1
         version: 26.8.1(electron-builder-squirrel-windows@26.8.1)
+      electron-updater:
+        specifier: ^6.8.3
+        version: 6.8.3
       electron-vite:
         specifier: ^5.0.0
         version: 5.0.0(@swc/core@1.15.24)(vite@6.4.1(@types/node@25.5.2)(jiti@1.21.7)(terser@5.46.1))
       postcss:
         specifier: ^8.4.0
         version: 8.5.8
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.0
+        version: 18.3.1(react@18.3.1)
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@18.3.28)(react@18.3.1)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      tailwind-merge:
+        specifier: ^2.5.0
+        version: 2.6.1
       tailwindcss:
         specifier: ^3.4.0
         version: 3.4.19

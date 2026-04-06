@@ -6,7 +6,12 @@ export default defineConfig({
   main: {
     build: {
       externalizeDeps: {
-        exclude: ['@thinklish/core', '@thinklish/shared']
+        exclude: [
+          '@thinklish/core',
+          '@thinklish/shared',
+          'electron-updater',
+          '@mozilla/readability'
+        ]
       }
     },
     resolve: {
