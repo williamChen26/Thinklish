@@ -1,0 +1,102 @@
+import { getDatabase } from '../database/connection';
+import type { Card, CardCreateInput } from '@english-studio/shared';
+
+interface CardRow {
+  id: number;
+  lookup_id: number;
+  front: string;
+  back: string;
+  tags: string;
+  next_review_at: string;
+  interval: number;
+  repetitions: number;
+  ease_factor: number;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapRowToCard(row: CardRow): Card {
+  return {
+    id: row.id,
+    lookupId: row.lookup_id,
+    front: row.front,
+    back: row.back,
+    tags: row.tags,
+    nextReviewAt: row.next_review_at,
+    interval: row.interval,
+    repetitions: row.repetitions,
+    easeFactor: row.ease_factor,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+export function createCard(input: CardCreateInput): Card {
+  const db = getDatabase();
+  const stmt = db.prepare(`
+    INSERT INTO cards (lookup_id, front, back, tags)
+    VALUES (@lookupId, @front, @back, @tags)
+  `);
+
+  const result = stmt.run({
+    lookupId: input.lookupId,
+    front: input.front,
+    back: input.back,
+    tags: input.tags
+  });
+
+  const created = getCardById(Number(result.lastInsertRowid));
+  if (!created) {
+    throw new Error('Failed to create card: row not found after insert');
+  }
+  return created;
+}
+
+export function getAllCards(): Card[] {
+  const db = getDatabase();
+  const rows = db.prepare('SELECT * FROM cards ORDER BY created_at DESC').all() as CardRow[];
+  return rows.map(mapRowToCard);
+}
+
+export function getCardById(id: number): Card | null {
+  const db = getDatabase();
+  const row = db.prepare('SELECT * FROM cards WHERE id = ?').get(id) as CardRow | undefined;
+  return row ? mapRowToCard(row) : null;
+}
+
+export function getCardByLookupId(lookupId: number): Card | null {
+  const db = getDatabase();
+  const row = db.prepare('SELECT * FROM cards WHERE lookup_id = ?').get(lookupId) as CardRow | undefined;
+  return row ? mapRowToCard(row) : null;
+}
+
+export function getDueCards(): Card[] {
+  const db = getDatabase();
+  const rows = db.prepare(
+    "SELECT * FROM cards WHERE next_review_at <= datetime('now') ORDER BY next_review_at ASC"
+  ).all() as CardRow[];
+  return rows.map(mapRowToCard);
+}
+
+export function updateCardReview(id: number, interval: number, repetitions: number, easeFactor: number): void {
+  const db = getDatabase();
+  db.prepare(`
+    UPDATE cards
+    SET interval = ?, repetitions = ?, ease_factor = ?,
+        next_review_at = datetime('now', '+' || ? || ' days'),
+        updated_at = datetime('now')
+    WHERE id = ?
+  `).run(interval, repetitions, easeFactor, interval, id);
+}
+
+export function exportCardsAsTsv(cards: Card[]): string {
+  const header = 'front\tback\ttags';
+  const rows = cards.map((card) =>
+    `${escapeField(card.front)}\t${escapeField(card.back)}\t${escapeField(card.tags)}`
+  );
+  return [header, ...rows].join('\n');
+}
+
+function escapeField(value: string): string {
+  return value.replace(/\t/g, ' ').replace(/\n/g, '<br>');
+}

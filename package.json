@@ -1,0 +1,24 @@
+{
+  "name": "english-studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Immersive English reading & deep understanding desktop app",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "rebuild": "pnpm --filter @english-studio/app rebuild"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "turbo": "^2.9.3",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

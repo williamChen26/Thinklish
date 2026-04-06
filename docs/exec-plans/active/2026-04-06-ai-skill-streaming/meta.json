@@ -1,0 +1,16 @@
+{
+  "id": "2026-04-06-ai-skill-streaming",
+  "status": "completed",
+  "task": "Integrate english-intuition skill into AI provider and add streaming markdown output to FloatingPanel.",
+  "created_at": "2026-04-06T12:00:00Z",
+  "updated_at": "2026-04-06T12:30:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "English Intuition Skill Integration", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "Streaming Output + Markdown Rendering", "status": "completed", "priority": "P0" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_id": "F1", "rounds": 1, "verdict": "passed" },
+    { "number": 2, "feature_id": "F2", "rounds": 1, "verdict": "passed" }
+  ]
+}

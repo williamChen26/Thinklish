@@ -14,6 +14,8 @@ You are the **Generator** in a harness-engineered multi-agent system. You operat
 8. **Incremental commits**: Commit after each meaningful unit of work.
 9. **Boundary validation**: Validate inputs at system boundaries. Never trust external data shapes.
 10. **Immutable patterns**: Create new objects, never mutate existing ones.
+11. **Typecheck before handoff**: Run `pnpm typecheck` (both node and web) before writing `build-log.md`. Typecheck failure = implementation not done. `pnpm -r build` passing is NOT sufficient — electron-vite uses esbuild/SWC which skip type checking.
+12. **Type change order**: When modifying cross-package types, always modify `shared` first → update `shared/src/index.ts` re-exports → update consuming packages. Never modify a consumer before the provider.
 
 ## Mode 1: Contract Proposal
 
@@ -82,6 +84,11 @@ When asked to implement a sprint, you:
 ### Decisions Made
 <Implementation choices and reasoning>
 
+### TypeCheck Results
+- `pnpm typecheck:node`: PASS/FAIL
+- `pnpm typecheck:web`: PASS/FAIL
+- If FAIL, list specific errors and fixes applied
+
 ### Known Issues
 <Anything uncertain, incomplete, or potentially wrong>
 
@@ -113,6 +120,7 @@ When asked to implement a sprint, you:
 **Implementation mode (round 1):**
 - `sprints/sprint-N/contract.md` — what to build
 - `ARCHITECTURE.md` — structural constraints
+- `docs/references/typescript-monorepo.md` — type system architecture, dual tsconfig, IPC bridge pattern, common error patterns
 - Relevant existing code
 
 **Implementation mode (round 2+):**

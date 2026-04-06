@@ -1,0 +1,26 @@
+{
+  "id": "2026-04-06-english-studio",
+  "status": "completed",
+  "task": "Build an Electron desktop app for English learners.",
+  "created_at": "2026-04-06T00:00:00Z",
+  "updated_at": "2026-04-06T00:35:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "Project Foundation & Electron Shell", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "Article Acquisition Pipeline", "status": "completed", "priority": "P0" },
+    { "id": "F3", "name": "Immersive Reader", "status": "completed", "priority": "P0" },
+    { "id": "F4", "name": "Selection & AI Floating Window", "status": "completed", "priority": "P0" },
+    { "id": "F5", "name": "Learning Log System", "status": "completed", "priority": "P1" },
+    { "id": "F6", "name": "Anki Card Generation & Export", "status": "completed", "priority": "P1" },
+    { "id": "F7", "name": "Spaced Repetition & Review", "status": "completed", "priority": "P2" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_id": "F1", "rounds": 1, "verdict": "passed" },
+    { "number": 2, "feature_id": "F2", "rounds": 1, "verdict": "passed" },
+    { "number": 3, "feature_id": "F3", "rounds": 1, "verdict": "passed" },
+    { "number": 4, "feature_id": "F4", "rounds": 1, "verdict": "passed" },
+    { "number": 5, "feature_id": "F5", "rounds": 1, "verdict": "passed" },
+    { "number": 6, "feature_id": "F6", "rounds": 1, "verdict": "passed" },
+    { "number": 7, "feature_id": "F7", "rounds": 1, "verdict": "passed" }
+  ]
+}

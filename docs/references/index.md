@@ -18,6 +18,14 @@
 - 摘录: [`harness-openai.md`](harness-openai.md)
 - 核心贡献: 仓库即记录系统、AGENTS.md 是地图不是手册、约束是速度前提、智能体可读性优先
 
+## 工程参考
+
+### TypeScript Monorepo 类型架构
+
+- 摘录: [`typescript-monorepo.md`](typescript-monorepo.md)
+- 核心贡献: 类型流向、双 tsconfig 机制、IPC 类型桥接模式、path alias 一览、常见错误模式与修复
+- 适用: Generator 实现模式 + Evaluator 验收模式
+
 ## 产品参考
 
 ## 建议收录内容

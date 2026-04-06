@@ -29,6 +29,7 @@ When asked to review a sprint contract, you:
 - [ ] **Dependencies**: Are all prerequisites met (previous sprints completed)?
 - [ ] **Out of scope**: Is it clear what's NOT included?
 - [ ] **Completeness**: Do the criteria cover the spec's AC for this feature?
+- [ ] **Type safety**: Does the contract include `pnpm typecheck` passing as a criterion? Are cross-package type changes identified (shared type additions, IPC signature changes)?
 
 ### Output: Write verdict directly back
 
@@ -45,7 +46,8 @@ When asked to evaluate a completed sprint, you:
 2. Read `build-log.md` — Generator's self-assessment (cross-reference, don't trust)
 3. Read the actual code changes
 4. Run tests independently
-5. For each acceptance criterion: locate evidence → verify → grade
+5. Run `pnpm typecheck` independently — typecheck FAIL = sprint FAIL regardless of other criteria. Do NOT trust the build-log's TypeCheck Results; `pnpm -r build` passing is NOT evidence of type safety (electron-vite uses esbuild/SWC which skip type checking)
+6. For each acceptance criterion: locate evidence → verify → grade
 
 ### Evaluation Protocol
 
@@ -122,8 +124,10 @@ REPLAN — fundamental approach is wrong, escalate to human
 **Evaluation mode:**
 - `sprints/sprint-N/contract.md` — the approved contract (grading rubric)
 - `sprints/sprint-N/build-log.md` — Generator's self-assessment
+- `docs/references/typescript-monorepo.md` — type system architecture (for verifying type safety)
 - Actual code changes
 - Test results (run independently)
+- Typecheck results (run `pnpm typecheck` independently)
 - Previous feedback (if round 2+)
 
 You will NOT receive: Generator's system prompt, Planner's reasoning, or orchestrator state.
@@ -145,3 +149,4 @@ NOT available: Edit (no code modifications), Write to code files, deployment too
 4. **Premature approval**: A test exists ≠ the test tests the right thing. Verify.
 5. **Self-rationalization**: "Minor issue, overall approach is sound" — if it fails the criterion, it fails.
 6. **Rubber-stamp contracts**: Approving a contract without checking scope, dependencies, and testability.
+7. **Build-as-typecheck**: Treating `pnpm -r build` success as proof of type safety. electron-vite transpiles without type checking — always run `pnpm typecheck` separately.

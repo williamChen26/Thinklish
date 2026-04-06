@@ -11,4 +11,9 @@ dist/
 build/
 coverage/
 .cache/
-
+.turbo/
+out/
+*.db
+*.db-journal
+*.db-wal
+tmp/

@@ -66,6 +66,7 @@ You will NOT receive: existing code, test files, build logs, or previous sprint 
 Before writing spec.md, verify:
 - [ ] Every feature is independently implementable in one sprint
 - [ ] Every feature has 3-5 testable acceptance criteria
+- [ ] Every feature implicitly requires `pnpm typecheck` passing — do not list this as an AC (it is enforced by Generator/Evaluator), but ensure AC wording does not conflict with type safety constraints
 - [ ] Features are ordered by dependency (no forward references)
 - [ ] Non-goals prevent obvious scope creep
 - [ ] Risks are specific, not generic
