@@ -1,5 +1,5 @@
 import { getDatabase } from '../database/connection';
-import type { Card, CardCreateInput } from '@english-studio/shared';
+import type { Card, CardCreateInput } from '@thinklish/shared';
 
 interface CardRow {
   id: number;

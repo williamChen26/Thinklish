@@ -1,6 +1,6 @@
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
-import type { ArticleCreateInput } from '@english-studio/shared';
+import type { ArticleCreateInput } from '@thinklish/shared';
 
 export type ExtractionResult =
   | { success: true; article: ArticleCreateInput }

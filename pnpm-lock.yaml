@@ -26,15 +26,15 @@ importers:
 
   packages/app:
     dependencies:
-      '@english-studio/core':
-        specifier: workspace:*
-        version: link:../core
-      '@english-studio/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
+      '@thinklish/core':
+        specifier: workspace:*
+        version: link:../core
+      '@thinklish/shared':
+        specifier: workspace:*
+        version: link:../shared
       better-sqlite3:
         specifier: ^12.8.0
         version: 12.8.0
@@ -105,7 +105,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@english-studio/shared':
+      '@thinklish/shared':
         specifier: workspace:*
         version: link:../shared
       better-sqlite3:

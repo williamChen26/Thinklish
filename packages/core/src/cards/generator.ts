@@ -1,4 +1,4 @@
-import type { Lookup, CardCreateInput } from '@english-studio/shared';
+import type { Lookup, CardCreateInput } from '@thinklish/shared';
 
 export function generateCardFromLookup(lookup: Lookup): CardCreateInput {
   if (lookup.lookupType === 'word' || lookup.lookupType === 'phrase') {

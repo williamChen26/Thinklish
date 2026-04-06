@@ -10,7 +10,7 @@ export interface ReaderSettings {
   contentWidth: ContentWidth;
 }
 
-const STORAGE_KEY = 'english-studio-settings';
+const STORAGE_KEY = 'thinklish-settings';
 
 const DEFAULT_SETTINGS: ReaderSettings = {
   theme: 'light',

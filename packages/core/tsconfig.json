@@ -2,8 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
-      "@english-studio/shared": ["../shared/src"],
-      "@english-studio/shared/*": ["../shared/src/*"]
+      "@thinklish/shared": ["../shared/src"],
+      "@thinklish/shared/*": ["../shared/src/*"]
     }
   },
   "include": ["src"]

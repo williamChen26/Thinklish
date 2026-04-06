@@ -40,23 +40,10 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
     setFullResponse('');
     setError('');
 
-    const result = await aiAPI.explain({
-      selectedText: selection.text,
-      contextBefore: selection.contextBefore,
-      contextAfter: selection.contextAfter
-    });
+    const earlyBuffer: AiStreamChunkEvent[] = [];
+    let resolvedStreamId: string | null = null;
 
-    if (!result.success) {
-      setError(result.error);
-      setState('error');
-      return;
-    }
-
-    streamIdRef.current = result.streamId;
-
-    unsubRef.current = aiAPI.onStreamChunk((event: AiStreamChunkEvent) => {
-      if (event.streamId !== streamIdRef.current) return;
-
+    const processEvent = (event: AiStreamChunkEvent): void => {
       if (event.error) {
         setError(event.error);
         setState('error');
@@ -73,7 +60,38 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
 
       setContent((prev) => prev + event.chunk);
       setState('streaming');
+    };
+
+    unsubRef.current = aiAPI.onStreamChunk((event: AiStreamChunkEvent) => {
+      if (resolvedStreamId === null) {
+        earlyBuffer.push(event);
+        return;
+      }
+      if (event.streamId !== resolvedStreamId) return;
+      processEvent(event);
     });
+
+    const result = await aiAPI.explain({
+      selectedText: selection.text,
+      contextBefore: selection.contextBefore,
+      contextAfter: selection.contextAfter
+    });
+
+    if (!result.success) {
+      if (unsubRef.current) { unsubRef.current(); unsubRef.current = null; }
+      setError(result.error);
+      setState('error');
+      return;
+    }
+
+    streamIdRef.current = result.streamId;
+    resolvedStreamId = result.streamId;
+
+    for (const buffered of earlyBuffer) {
+      if (buffered.streamId === resolvedStreamId) {
+        processEvent(buffered);
+      }
+    }
   }, [selection, cleanup]);
 
   useEffect(() => {

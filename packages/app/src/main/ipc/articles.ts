@@ -4,8 +4,8 @@ import {
   getAllArticles,
   getArticleById,
   deleteArticle
-} from '@english-studio/core';
-import type { ArticleCreateInput } from '@english-studio/shared';
+} from '@thinklish/core';
+import type { ArticleCreateInput } from '@thinklish/shared';
 import { extractArticle } from '../services/article-extractor';
 
 export function registerArticleHandlers(): void {

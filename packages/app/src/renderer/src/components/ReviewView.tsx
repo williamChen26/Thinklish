@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Card } from '@english-studio/shared';
+import type { Card } from '@thinklish/shared';
 import { cardsAPI } from '../lib/api';
 import { cn } from '../lib/utils';
 

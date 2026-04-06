@@ -9,7 +9,7 @@ import {
   exportCardsAsTsv,
   generateCardFromLookup,
   getLookupById
-} from '@english-studio/core';
+} from '@thinklish/core';
 
 export function registerCardHandlers(): void {
   ipcMain.handle('cards:generateFromLookup', (_event, lookupId: number) => {
@@ -50,7 +50,7 @@ export function registerCardHandlers(): void {
 
     const result = await dialog.showSaveDialog({
       title: 'Export Anki Cards',
-      defaultPath: `english-studio-cards-${new Date().toISOString().split('T')[0]}.tsv`,
+      defaultPath: `thinklish-cards-${new Date().toISOString().split('T')[0]}.tsv`,
       filters: [
         { name: 'TSV Files', extensions: ['tsv'] },
         { name: 'All Files', extensions: ['*'] }

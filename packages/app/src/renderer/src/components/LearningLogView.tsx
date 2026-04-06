@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Lookup, LookupType, MasteryStatus } from '@english-studio/shared';
+import type { Lookup, LookupType, MasteryStatus } from '@thinklish/shared';
 import { lookupsAPI, cardsAPI } from '../lib/api';
 import { formatRelativeTime } from '../lib/format';
 import { cn } from '../lib/utils';

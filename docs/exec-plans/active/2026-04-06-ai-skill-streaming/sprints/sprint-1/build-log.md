@@ -9,7 +9,7 @@
 - `include` 添加 `src/main/**/*.d.ts`，确保新增的类型声明被 TypeScript 识别
 
 ### Rewritten: `packages/app/src/main/services/ai-provider.ts`
-- **删除** 本地 `LookupMode` 类型，改用 `@english-studio/shared` 的 `LookupType`（已有 word/phrase/sentence）
+- **删除** 本地 `LookupMode` 类型，改用 `@thinklish/shared` 的 `LookupType`（已有 word/phrase/sentence）
 - **导入** `english-intuition.md?raw` 作为 build-time 内联字符串
 - **新增** `stripFrontmatter()` 剥离 YAML frontmatter
 - **更新** `detectMode()` 返回 `LookupType`，三模式判断：1词=word, 2-6词无句号=phrase, 其余=sentence

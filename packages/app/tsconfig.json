@@ -4,10 +4,10 @@
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
-      "@english-studio/core": ["../core/src"],
-      "@english-studio/core/*": ["../core/src/*"],
-      "@english-studio/shared": ["../shared/src"],
-      "@english-studio/shared/*": ["../shared/src/*"],
+      "@thinklish/core": ["../core/src"],
+      "@thinklish/core/*": ["../core/src/*"],
+      "@thinklish/shared": ["../shared/src"],
+      "@thinklish/shared/*": ["../shared/src/*"],
       "@renderer/*": ["./src/renderer/src/*"]
     }
   },

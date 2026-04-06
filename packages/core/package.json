@@ -1,5 +1,5 @@
 {
-  "name": "@english-studio/core",
+  "name": "@thinklish/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@english-studio/shared": "workspace:*",
+    "@thinklish/shared": "workspace:*",
     "better-sqlite3": "^12.8.0"
   },
   "devDependencies": {

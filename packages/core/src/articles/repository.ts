@@ -1,5 +1,5 @@
 import { getDatabase } from '../database/connection';
-import type { Article, ArticleCreateInput } from '@english-studio/shared';
+import type { Article, ArticleCreateInput } from '@thinklish/shared';
 
 interface ArticleRow {
   id: number;

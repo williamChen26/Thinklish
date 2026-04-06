@@ -1,21 +1,19 @@
 import { spawn, execFile, type ChildProcess } from 'child_process';
 import { promisify } from 'util';
-import type { LookupType } from '@english-studio/shared';
+import type { LookupType } from '@thinklish/shared';
 import skillRaw from './english-intuition.md?raw';
 
 const execFileAsync = promisify(execFile);
-
-interface AiExplainInput {
-  selectedText: string;
-  contextBefore: string;
-  contextAfter: string;
-  mode: LookupType;
-}
 
 export interface StreamCallbacks {
   onChunk: (chunk: string) => void;
   onDone: (fullText: string) => void;
   onError: (error: string) => void;
+}
+
+interface CliInfo {
+  cmd: string;
+  supportsStreamJson: boolean;
 }
 
 function stripFrontmatter(raw: string): string {
@@ -42,28 +40,36 @@ const MODE_LABEL: Record<LookupType, string> = {
   sentence: '句子模式（模板 C）'
 };
 
-function buildPrompt(input: AiExplainInput): string {
+function buildUserMessage(input: {
+  selectedText: string;
+  contextBefore: string;
+  contextAfter: string;
+  mode: LookupType;
+}): string {
   const context = `...${input.contextBefore}【${input.selectedText}】${input.contextAfter}...`;
 
-  return `${skillContent}
-
----
-
-# 用户请求
-
-用户在阅读英文文章时选中了以下内容，需要你帮助理解。
+  return `用户在阅读英文文章时选中了以下内容，需要你帮助理解。
 
 **选中文本**: "${input.selectedText}"
 **文章上下文**: "${context}"
 **检测模式**: ${MODE_LABEL[input.mode]}
 
-请根据上述 Skill 规则，使用对应模板输出。注意：用户提供了文章上下文，请输出「在这篇文章里」模块。`;
+请根据 Skill 规则，使用对应模板输出。注意：用户提供了文章上下文，请输出「在这篇文章里」模块。`;
 }
 
-async function findCli(): Promise<{ cmd: string; args: string[] } | null> {
-  const candidates = [
-    { cmd: 'claude', args: ['-p'] },
-    { cmd: 'codex', args: ['-q'] }
+function buildFullPrompt(input: {
+  selectedText: string;
+  contextBefore: string;
+  contextAfter: string;
+  mode: LookupType;
+}): string {
+  return `${skillContent}\n\n---\n\n# 用户请求\n\n${buildUserMessage(input)}`;
+}
+
+async function findCli(): Promise<CliInfo | null> {
+  const candidates: CliInfo[] = [
+    { cmd: 'claude', supportsStreamJson: true },
+    { cmd: 'codex', supportsStreamJson: false }
   ];
 
   for (const candidate of candidates) {
@@ -77,12 +83,62 @@ async function findCli(): Promise<{ cmd: string; args: string[] } | null> {
   return null;
 }
 
+function buildCliArgs(cli: CliInfo, userMessage: string): string[] {
+  if (cli.supportsStreamJson) {
+    return [
+      '-p',
+      '--verbose',
+      '--output-format', 'stream-json',
+      '--include-partial-messages',
+      '--system-prompt', skillContent,
+      userMessage
+    ];
+  }
+  return ['-q', `${skillContent}\n\n---\n\n# 用户请求\n\n${userMessage}`];
+}
+
+function parseStreamJsonLine(line: string): string | null {
+  try {
+    const obj = JSON.parse(line) as Record<string, unknown>;
+
+    if (obj.type === 'stream_event') {
+      const event = obj.event as Record<string, unknown> | undefined;
+      if (event?.type === 'content_block_delta') {
+        const delta = event.delta as Record<string, unknown> | undefined;
+        if (delta?.type === 'text_delta' && typeof delta.text === 'string') {
+          return delta.text;
+        }
+      }
+    }
+
+    if (obj.type === 'result' && typeof obj.result === 'string') {
+      return null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function extractResultText(line: string): string | null {
+  try {
+    const obj = JSON.parse(line) as Record<string, unknown>;
+    if (obj.type === 'result' && typeof obj.result === 'string') {
+      return obj.result;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function explainTextStream(
   input: { selectedText: string; contextBefore: string; contextAfter: string },
   callbacks: StreamCallbacks
 ): Promise<ChildProcess | null> {
   const mode = detectMode(input.selectedText);
-  const prompt = buildPrompt({ ...input, mode });
+  const userMessage = buildUserMessage({ ...input, mode });
 
   const cli = await findCli();
   if (!cli) {
@@ -92,42 +148,68 @@ export async function explainTextStream(
     return null;
   }
 
-  const child = spawn(cli.cmd, [...cli.args, prompt], {
+  const args = buildCliArgs(cli, userMessage);
+  const child = spawn(cli.cmd, args, {
     env: { ...process.env, TERM: 'dumb' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
 
-  let fullText = '';
+  let streamedText = '';
+  let resultText: string | null = null;
+  let timedOut = false;
+
   const timeout = setTimeout(() => {
+    timedOut = true;
     child.kill('SIGTERM');
-    callbacks.onError('AI 响应超时（60 秒），请重试');
   }, 60000);
 
-  child.stdout!.on('data', (data: Buffer) => {
-    const chunk = data.toString();
-    fullText += chunk;
-    callbacks.onChunk(chunk);
-  });
+  if (cli.supportsStreamJson) {
+    let lineBuffer = '';
 
-  child.stderr!.on('data', (data: Buffer) => {
-    const text = data.toString();
-    if (text.trim()) {
-      fullText += text;
-      callbacks.onChunk(text);
-    }
-  });
+    child.stdout!.on('data', (data: Buffer) => {
+      lineBuffer += data.toString();
+      const lines = lineBuffer.split('\n');
+      lineBuffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        const text = parseStreamJsonLine(line);
+        if (text) {
+          streamedText += text;
+          callbacks.onChunk(text);
+        }
+
+        const result = extractResultText(line);
+        if (result) {
+          resultText = result;
+        }
+      }
+    });
+  } else {
+    child.stdout!.on('data', (data: Buffer) => {
+      const chunk = data.toString();
+      streamedText += chunk;
+      callbacks.onChunk(chunk);
+    });
+  }
 
   child.on('close', (code) => {
     clearTimeout(timeout);
-    if (code === 0 || (code === null && fullText.length > 0)) {
-      const trimmed = fullText.trim();
-      if (!trimmed) {
-        callbacks.onError('AI 返回了空响应，请重试');
-      } else {
-        callbacks.onDone(trimmed);
-      }
-    } else if (code !== null) {
-      callbacks.onError(`AI 调用失败 (exit code: ${code})`);
+
+    if (timedOut) {
+      callbacks.onError('AI 响应超时（60 秒），请重试');
+      return;
+    }
+
+    const finalText = (resultText ?? streamedText).trim();
+
+    if (finalText) {
+      callbacks.onDone(finalText);
+    } else if (code === 0) {
+      callbacks.onError('AI 返回了空响应，请重试');
+    } else {
+      callbacks.onError(`AI 调用失败 (exit code: ${code ?? 'unknown'})`);
     }
   });
 
@@ -139,4 +221,4 @@ export async function explainTextStream(
   return child;
 }
 
-export { detectMode };
+export { detectMode, buildFullPrompt };

@@ -5,8 +5,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
       "@renderer/*": ["./src/renderer/src/*"],
-      "@english-studio/shared": ["../shared/src"],
-      "@english-studio/shared/*": ["../shared/src/*"]
+      "@thinklish/shared": ["../shared/src"],
+      "@thinklish/shared/*": ["../shared/src/*"]
     }
   },
   "include": [

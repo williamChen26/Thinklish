@@ -7,7 +7,7 @@
 ### packages/core
 - NEW: `src/articles/repository.ts` — createArticle, getAllArticles, getArticleById, deleteArticle
 - MODIFIED: `src/index.ts` — re-export article repository
-- MODIFIED: `package.json` — added @english-studio/shared dependency
+- MODIFIED: `package.json` — added @thinklish/shared dependency
 - MODIFIED: `tsconfig.json` — added path aliases for shared
 
 ### packages/app

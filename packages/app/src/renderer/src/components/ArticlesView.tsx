@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Article } from '@english-studio/shared';
+import type { Article } from '@thinklish/shared';
 import { articlesAPI } from '../lib/api';
 import { formatRelativeTime, truncate } from '../lib/format';
 import { cn } from '../lib/utils';

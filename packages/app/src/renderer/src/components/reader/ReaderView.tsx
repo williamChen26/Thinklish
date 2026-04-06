@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Article } from '@english-studio/shared';
+import type { Article } from '@thinklish/shared';
 import { articlesAPI } from '../../lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { ReaderToolbar } from './ReaderToolbar';

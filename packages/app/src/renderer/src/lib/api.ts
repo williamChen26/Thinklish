@@ -1,4 +1,4 @@
-import type { Article, ArticleCreateInput, Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@english-studio/shared';
+import type { Article, ArticleCreateInput, Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@thinklish/shared';
 
 export type AddArticleResult =
   | { success: true; article: Article }

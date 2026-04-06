@@ -4,8 +4,8 @@ import {
   getAllLookups,
   updateMasteryStatus,
   getLookupsByArticleId
-} from '@english-studio/core';
-import type { LookupCreateInput, LookupType, MasteryStatus } from '@english-studio/shared';
+} from '@thinklish/core';
+import type { LookupCreateInput, LookupType, MasteryStatus } from '@thinklish/shared';
 
 export function registerLookupHandlers(): void {
   ipcMain.handle('lookups:create', (_event, input: LookupCreateInput) => {

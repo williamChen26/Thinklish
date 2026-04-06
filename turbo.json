@@ -5,7 +5,7 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "@english-studio/app#build": {
+    "@thinklish/app#build": {
       "dependsOn": ["^build"],
       "outputs": ["out/**"]
     },

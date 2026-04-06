@@ -1,14 +1,14 @@
 {
-  "name": "english-studio",
+  "name": "thinklish",
   "private": true,
   "version": "0.1.0",
-  "description": "Immersive English reading & deep understanding desktop app",
+  "description": "Think in English — immersive reading & deep understanding desktop app",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "rebuild": "pnpm --filter @english-studio/app rebuild"
+    "rebuild": "pnpm --filter @thinklish/app rebuild"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

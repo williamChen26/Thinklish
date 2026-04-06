@@ -6,13 +6,13 @@ export default defineConfig({
   main: {
     build: {
       externalizeDeps: {
-        exclude: ['@english-studio/core', '@english-studio/shared']
+        exclude: ['@thinklish/core', '@thinklish/shared']
       }
     },
     resolve: {
       alias: {
-        '@english-studio/core': resolve(__dirname, '../core/src'),
-        '@english-studio/shared': resolve(__dirname, '../shared/src')
+        '@thinklish/core': resolve(__dirname, '../core/src'),
+        '@thinklish/shared': resolve(__dirname, '../shared/src')
       }
     }
   },
@@ -21,7 +21,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve(__dirname, 'src/renderer/src'),
-        '@english-studio/shared': resolve(__dirname, '../shared/src')
+        '@thinklish/shared': resolve(__dirname, '../shared/src')
       }
     },
     plugins: [react()]

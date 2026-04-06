@@ -14,7 +14,7 @@
 
 ### D2: 三模式检测
 
-- 删除本地 `LookupMode` 类型，改用 `@english-studio/shared` 的 `LookupType`（已有 word/phrase/sentence 三值）
+- 删除本地 `LookupMode` 类型，改用 `@thinklish/shared` 的 `LookupType`（已有 word/phrase/sentence 三值）
 - 更新 `detectMode()` 逻辑：
   - 1 词 → `'word'`
   - 2-6 词且无句子标点 → `'phrase'`

@@ -1,6 +1,6 @@
 import { app, BrowserWindow, shell } from 'electron';
 import { join } from 'path';
-import { initDatabase, closeDatabase, createTables } from '@english-studio/core';
+import { initDatabase, closeDatabase, createTables } from '@thinklish/core';
 import { registerArticleHandlers } from './ipc/articles';
 import { registerAiHandlers } from './ipc/ai';
 import { registerLookupHandlers } from './ipc/lookups';
@@ -44,7 +44,7 @@ function createWindow(): BrowserWindow {
 }
 
 app.whenReady().then(() => {
-  const dbPath = join(app.getPath('userData'), 'english-studio.db');
+  const dbPath = join(app.getPath('userData'), 'thinklish.db');
   const db = initDatabase(dbPath);
   createTables(db);
 

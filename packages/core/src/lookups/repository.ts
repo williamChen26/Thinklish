@@ -1,5 +1,5 @@
 import { getDatabase } from '../database/connection';
-import type { Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@english-studio/shared';
+import type { Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@thinklish/shared';
 
 interface LookupRow {
   id: number;

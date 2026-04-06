@@ -25,8 +25,8 @@ shared (纯类型定义)
 
 | tsconfig | 覆盖目录 | lib | path alias | 用途 |
 |----------|---------|-----|------------|------|
-| `tsconfig.node.json` | `src/main/**`, `src/preload/**`, `electron.vite.config.ts` | ES2022 | `@english-studio/core`, `@english-studio/shared` | Node.js 运行环境 |
-| `tsconfig.web.json` | `src/renderer/src/**` | ES2022, DOM, DOM.Iterable | `@renderer/*`, `@english-studio/shared` | 浏览器运行环境 |
+| `tsconfig.node.json` | `src/main/**`, `src/preload/**`, `electron.vite.config.ts` | ES2022 | `@thinklish/core`, `@thinklish/shared` | Node.js 运行环境 |
+| `tsconfig.web.json` | `src/renderer/src/**` | ES2022, DOM, DOM.Iterable | `@renderer/*`, `@thinklish/shared` | 浏览器运行环境 |
 
 **为什么拆分:** main 进程运行在 Node.js 中，可用 Node API 但无 DOM；renderer 运行在 Chromium 中，有 DOM 但无 Node API。混用会导致类型污染（如 renderer 中出现 `Buffer` 类型，或 main 中出现 `HTMLElement`）。
 
@@ -39,13 +39,13 @@ shared (纯类型定义)
 
 | Alias | 定义位置 | 解析目标 |
 |-------|---------|---------|
-| `@english-studio/shared` | `tsconfig.node.json`, `tsconfig.web.json`, `core/tsconfig.json` | `../shared/src` |
-| `@english-studio/shared/*` | 同上 | `../shared/src/*` |
-| `@english-studio/core` | `tsconfig.node.json` | `../core/src` |
-| `@english-studio/core/*` | `tsconfig.node.json` | `../core/src/*` |
+| `@thinklish/shared` | `tsconfig.node.json`, `tsconfig.web.json`, `core/tsconfig.json` | `../shared/src` |
+| `@thinklish/shared/*` | 同上 | `../shared/src/*` |
+| `@thinklish/core` | `tsconfig.node.json` | `../core/src` |
+| `@thinklish/core/*` | `tsconfig.node.json` | `../core/src/*` |
 | `@renderer/*` | `tsconfig.web.json` | `./src/renderer/src/*` |
 
-**注意:** renderer 侧没有 `@english-studio/core` 别名——这是刻意的，防止 renderer 直接导入 core。
+**注意:** renderer 侧没有 `@thinklish/core` 别名——这是刻意的，防止 renderer 直接导入 core。
 
 ## IPC 类型桥接模式
 
@@ -91,7 +91,7 @@ export interface Settings { ... }
 // shared/src/index.ts — 忘记加这行
 export type { Settings } from './types/settings';
 
-// 消费方报错: Module '"@english-studio/shared"' has no exported member 'Settings'
+// 消费方报错: Module '"@thinklish/shared"' has no exported member 'Settings'
 ```
 
 **修复:** 每次新增类型文件后，必须更新 `shared/src/index.ts`。

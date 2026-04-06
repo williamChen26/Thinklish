@@ -1,58 +1,121 @@
-# Tideglass
+# Thinklish
 
-Tideglass 是一个 RSS 订阅与阅读应用的仓库起点，目标体验接近 Reader 一类产品：订阅稳定、整理轻量、阅读沉浸。
+Think in English — 面向中文母语者的沉浸式英语阅读与深度理解桌面应用。
 
-这个仓库的核心不是"先写很多代码"，而是先把智能体工作的支撑结构搭好：入口清晰、文档可导航、计划可追踪、约束可执行，然后再让产品代码在这套骨架上稳定生长。
+Thinklish 的核心理念不是翻译，而是帮助用户像英语母语者一样**感知**语义、结构与用法模式。用户在阅读英文文章时，可以选中任意单词、短语或句子，获得基于"英语直觉"的理解辅助，并通过间隔重复巩固记忆。
 
-## 核心原则
+## 功能概览
 
-1. 人类掌舵，智能体执行。
-2. `AGENTS.md` 是地图，不是百科全书。
-3. 仓库是记录系统，重要上下文必须版本化落地。
-4. 优先优化智能体可读性，而不是临时对话上下文。
-5. 用可执行约束守住架构和质量，而不是只靠口头约定。
+- **文章导入**：粘贴 URL，自动抓取并解析为干净的阅读视图
+- **AI 查词**：选中文本即可获得直觉式英语理解（非机械翻译）
+- **学习日志**：记录每一次查词，按掌握程度追踪进度
+- **间隔复习**：从查词记录自动生成 Anki 风格卡片，支持导出 TSV
 
-## Harness 编排系统 (Ralph Loop)
+## 技术栈
 
-本仓库配备三智能体 harness 编排系统，采用 sprint-based ralph loop:
+| 层 | 技术 |
+|---|------|
+| Runtime | Electron 40 + Node.js |
+| Frontend | React 18 + TypeScript 5 + Tailwind CSS 3 |
+| Build | Turborepo + electron-vite 5 (Vite + SWC) |
+| Database | SQLite (better-sqlite3, WAL mode) |
+| AI | Claude CLI (通过 child_process 调用) |
 
+详见 [`ARCHITECTURE.md`](ARCHITECTURE.md)。
+
+## 快速开始
+
+### 前置要求
+
+- Node.js >= 18
+- [pnpm](https://pnpm.io/) 9.x（`corepack enable` 自动启用）
+- [Claude CLI](https://docs.anthropic.com/en/docs/claude-cli) 已安装并登录（AI 功能依赖）
+
+### 安装依赖
+
+```bash
+pnpm install
 ```
-需求 → Planner (大蓝图) → Sprint 循环 { Generator 提合同 → Evaluator 审合同 → Generator 实现 → Evaluator 验收 } → 交付
+
+如果 `better-sqlite3` 编译失败（常见于 Electron 版本更新后），运行原生模块重编译：
+
+```bash
+pnpm rebuild
 ```
+
+### 启动开发环境
+
+```bash
+pnpm dev
+```
+
+这会通过 Turborepo 按依赖顺序构建 `shared` → `core`，然后启动 electron-vite dev server（含 HMR）。
+
+### 构建生产版本
+
+```bash
+pnpm build
+```
+
+产物输出到 `packages/app/out/`。
+
+## 常用命令
 
 | 命令 | 作用 |
 |------|------|
-| `/harness <需求>` | 完整 ralph loop: 规划→sprint 循环→交付 |
-| `/planner <需求>` | 仅规划阶段，生成 spec |
-| `/generator contract <run-id>` | 提出下一个 sprint 合同 |
-| `/generator build <run-id>` | 实现当前 sprint |
-| `/evaluator contract <run-id>` | 审查 sprint 合同 |
-| `/evaluator sprint <run-id>` | 验收 sprint 实现 |
+| `pnpm dev` | 启动开发环境（Turborepo 编排） |
+| `pnpm build` | 全量构建 |
+| `pnpm typecheck` | 类型检查（独立于构建，必须单独运行） |
+| `pnpm lint` | ESLint 检查所有包 |
+| `pnpm rebuild` | 重编译 better-sqlite3 原生模块 |
 
-详见 [`docs/design-docs/harness-architecture.md`](docs/design-docs/harness-architecture.md)。
+## 调试
 
-## 仓库地图
+### 主进程调试
 
-- `AGENTS.md`: 智能体和协作者的短入口。
-- `ARCHITECTURE.md`: 顶层架构与约束。
-- `docs/README.md`: 知识库总索引。
-- `docs/design-docs/`: 设计理念与决策。
-- `docs/product-specs/`: 产品规格与验收标准。
-- `docs/exec-plans/`: Sprint 运行状态、完成记录、技术债。
-- `docs/references/`: 外部参考与内部约定摘录。
-- `.claude/agents/`: Planner、Generator、Evaluator 智能体定义。
-- `.claude/skills/`: Harness 技能入口。
+electron-vite dev 启动时主进程默认开启 inspect 端口。在 VSCode/Cursor 中：
 
-## 推荐工作流
+1. 启动 `pnpm dev`
+2. 打开 "Run and Debug" 面板
+3. 选择 "Attach to Process" 连接 Node.js 调试端口（默认 `9229`）
 
-1. 先在 `docs/product-specs/` 写需求或规格。
-2. 用 `/harness <需求>` 启动端到端 ralph loop。
-3. 每个 sprint 自动: 提合同→审合同→实现→验收→下一个。
-4. 人类随时可以查看 `docs/exec-plans/active/<run-id>/` 的状态。
-5. 全部功能完成后，运行归档到 `docs/exec-plans/completed/`。
+或在终端通过 Chrome DevTools 调试：访问 `chrome://inspect`。
 
-## 初始化检查
+### 渲染进程调试
+
+应用窗口中按 `Cmd+Option+I`（macOS）打开 Chromium DevTools，与浏览器调试体验一致。
+
+### 数据库
+
+SQLite 数据库存储在 Electron 的 `userData` 目录：
+
+```
+~/Library/Application Support/thinklish/thinklish.db    # macOS
+```
+
+可使用任何 SQLite 工具查看（如 DB Browser for SQLite、`sqlite3` CLI）。
+
+### 类型检查
+
+electron-vite 构建时仅做转译不做类型检查。build 通过不等于类型正确。务必运行：
 
 ```bash
-./scripts/check_repo_docs.sh
+pnpm typecheck
 ```
+
+## 包结构
+
+```
+packages/
+  shared/     共享类型定义 (Article, Lookup, Card)
+  core/       核心业务逻辑 (SQLite CRUD, 卡片生成, 导出)
+  app/        Electron 应用 (主进程 + 渲染进程)
+```
+
+依赖方向：`shared ← core ← app/main`，`shared ← app/renderer`。Renderer 通过 IPC 与 main 通信，不直接访问 core。
+
+## 仓库导航
+
+- [`ARCHITECTURE.md`](ARCHITECTURE.md)：顶层架构与技术约束
+- [`AGENTS.md`](AGENTS.md)：智能体协作入口
+- [`docs/`](docs/README.md)：知识库总索引（设计文档、产品规格、执行计划）

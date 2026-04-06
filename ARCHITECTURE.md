@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-English Studio 是一个基于 Electron 的桌面应用，采用 pnpm monorepo 架构，面向英语学习者提供沉浸式阅读和深度理解体验。
+Thinklish 是一个基于 Electron 的桌面应用，采用 pnpm monorepo 架构，面向英语学习者提供沉浸式阅读和深度理解体验。
 
 ## 技术栈
 
