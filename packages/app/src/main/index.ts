@@ -1,4 +1,5 @@
 import { app, BrowserWindow, shell } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import { join } from 'path';
 import { initDatabase, closeDatabase, createTables } from '@thinklish/core';
 import { registerArticleHandlers } from './ipc/articles';
@@ -54,6 +55,10 @@ app.whenReady().then(() => {
   registerCardHandlers();
 
   mainWindow = createWindow();
+
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

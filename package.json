@@ -8,7 +8,11 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "rebuild": "pnpm --filter @thinklish/app rebuild"
+    "rebuild": "pnpm --filter @thinklish/app rebuild",
+    "pack": "turbo build && pnpm --filter @thinklish/app pack",
+    "dist": "turbo build && pnpm --filter @thinklish/app dist",
+    "dist:mac": "turbo build && pnpm --filter @thinklish/app dist:mac",
+    "dist:win": "turbo build && pnpm --filter @thinklish/app dist:win"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
