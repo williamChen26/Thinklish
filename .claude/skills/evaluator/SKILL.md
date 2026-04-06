@@ -106,8 +106,4 @@ Report: max iterations reached. Recommend: skip this feature and continue, or es
 **REPLAN:**
 Set `status → "failed"`. Report: Evaluator recommends replanning. Suggest `/planner` with refined requirements.
 
-### Step 5: Archive (on run completion)
-
-When all features are completed:
-1. Move run directory from `active/` to `completed/`
-2. Log summary to `completed/history.log`
+> **Note:** Evaluator 的工作到 Step 4 结束。归档（`active/` → `completed/`）由 Harness Phase 3 负责，不属于 Evaluator 职责。

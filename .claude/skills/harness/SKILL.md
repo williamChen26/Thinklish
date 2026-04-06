@@ -94,12 +94,18 @@ For each pending feature in `spec_features`:
    - **FAIL + max rounds** → mark sprint failed, decide: skip or escalate
    - **REPLAN** → set run `status → "failed"`, suggest `/planner`
 
-### Phase 3: COMPLETION
+### Phase 3: COMPLETION (归档唯一负责人)
 
 When all features in `spec_features` are `"completed"`:
-1. Set `status → "completed"`
-2. Move run from `active/` to `completed/`
-3. Report final summary: features built, total sprints, total rounds
+
+1. Set `meta.json` `status → "completed"`, `current_sprint → null`
+2. **归档**: `mv docs/exec-plans/active/<run-id>/ docs/exec-plans/completed/<run-id>/`
+3. Append one-line summary to `completed/history.log`:
+   `<run-id> | <feature-count> features | <total-sprints> sprints | <total-rounds> rounds | <date>`
+4. Update `active/README.md`: 从"当前活跃"列表中移除该运行
+5. Report final summary to user: features built, total sprints, total rounds
+
+> **Important:** 归档操作只在 Phase 3 执行。Evaluator 不负责归档，手动跑 `/evaluator sprint` 时需人工或通过 `/harness` 收尾。
 
 ## Agent Isolation
 

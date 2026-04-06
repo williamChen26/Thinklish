@@ -2,7 +2,7 @@
 
 ## Background
 
-English Studio 的 AI 解释功能当前存在两个问题：
+Thinklish 的 AI 解释功能当前存在两个问题：
 
 1. **Prompt 硬编码且与 Skill 脱节**：`ai-provider.ts` 中的 `buildPrompt()` 硬编码了 word/sentence 两种模式的 prompt，而用户已在 `english-intuition.md` 中编写了更完善的三模式（word/phrase/sentence）skill 模板，包含发音、语感、场景感等丰富模块。当前 prompt 与 skill 内容不一致。
 

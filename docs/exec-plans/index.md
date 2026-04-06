@@ -144,7 +144,7 @@ COMPLETED
 1. `/harness` 在 `active/<run-id>/` 创建运行目录
 2. Planner 产出 `spec.md`
 3. Sprint 循环推进，每个 sprint 在 `sprints/sprint-N/` 下产出
-4. 所有功能完成后，运行目录移动到 `completed/<run-id>/`
+4. 所有功能完成后，**Harness Phase 3** 将运行目录移动到 `completed/<run-id>/`（归档由 Harness 全权负责，见 `.claude/skills/harness/SKILL.md`）
 5. 补技术债记录到 `tech-debt-tracker.md`
 
 ## 计划模板 (手动执行计划)

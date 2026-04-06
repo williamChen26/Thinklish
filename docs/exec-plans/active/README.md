@@ -12,3 +12,5 @@
 ## 当前活跃
 
 （无活跃计划）
+
+> 已完成的计划请查看 [`completed/`](../completed/README.md)。
