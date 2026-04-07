@@ -1,0 +1,18 @@
+{
+  "id": "2026-04-07-acp-migration",
+  "status": "completed",
+  "task": "Migrate AI provider layer from direct CLI spawning to ACP (Agent Client Protocol), initially supporting Claude Code and Codex CLI.",
+  "created_at": "2026-04-07T12:00:00Z",
+  "updated_at": "2026-04-07T12:30:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "Agent Registry & Detection", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "ACP Connection & Prompt Lifecycle", "status": "completed", "priority": "P0" },
+    { "id": "F3", "name": "AI Provider Migration & IPC Integration", "status": "completed", "priority": "P0" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_id": "F1", "rounds": 1, "verdict": "passed" },
+    { "number": 2, "feature_id": "F2", "rounds": 1, "verdict": "passed" },
+    { "number": 3, "feature_id": "F3", "rounds": 1, "verdict": "passed" }
+  ]
+}

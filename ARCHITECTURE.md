@@ -10,7 +10,7 @@ Thinklish 是一个基于 Electron 的桌面应用，采用 pnpm monorepo 架构
 - **Frontend**: React 18 + TypeScript 5 + Tailwind CSS 3
 - **Build**: Turborepo + electron-vite 5 (Vite for renderer, SWC for main/preload)
 - **Database**: SQLite (better-sqlite3 v12, WAL mode)
-- **AI**: Claude Code CLI / Codex CLI (通过 child_process 调用)
+- **AI**: ACP (Agent Client Protocol) — 通过 `@agentclientprotocol/sdk` 与 Claude Code / Codex CLI 适配器通信
 - **Lint**: ESLint 9 flat config + typescript-eslint
 
 ## 包结构

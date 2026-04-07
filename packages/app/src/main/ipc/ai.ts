@@ -1,8 +1,8 @@
 import { ipcMain, type BrowserWindow } from 'electron';
-import type { ChildProcess } from 'child_process';
+import type { AcpQueryHandle } from '../services/acp-connection';
 import { explainTextStream, detectMode } from '../services/ai-provider';
 
-const activeStreams = new Map<string, ChildProcess>();
+const activeStreams = new Map<string, AcpQueryHandle>();
 let streamCounter = 0;
 
 export function registerAiHandlers(getWindow: () => BrowserWindow | null): void {
@@ -17,7 +17,7 @@ export function registerAiHandlers(getWindow: () => BrowserWindow | null): void 
       return { success: false, error: '窗口未就绪' };
     }
 
-    const child = await explainTextStream(input, {
+    const handle = explainTextStream(input, {
       onChunk: (chunk: string) => {
         if (win.isDestroyed()) return;
         win.webContents.send('ai:stream-chunk', { streamId, chunk, done: false });
@@ -34,8 +34,8 @@ export function registerAiHandlers(getWindow: () => BrowserWindow | null): void 
       }
     });
 
-    if (child) {
-      activeStreams.set(streamId, child);
+    if (handle) {
+      activeStreams.set(streamId, handle);
       return { success: true, streamId };
     }
 
@@ -43,9 +43,9 @@ export function registerAiHandlers(getWindow: () => BrowserWindow | null): void 
   });
 
   ipcMain.handle('ai:stream-cancel', (_event, streamId: string) => {
-    const child = activeStreams.get(streamId);
-    if (child) {
-      child.kill('SIGTERM');
+    const handle = activeStreams.get(streamId);
+    if (handle) {
+      handle.cancel();
       activeStreams.delete(streamId);
     }
   });

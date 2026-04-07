@@ -21,6 +21,9 @@
     "dist:win": "electron-builder --win"
   },
   "dependencies": {
+    "@agentclientprotocol/claude-agent-acp": "^0.25.3",
+    "@agentclientprotocol/sdk": "^0.18.1",
+    "@zed-industries/codex-acp": "^0.11.1",
     "better-sqlite3": "^12.8.0",
     "jsdom": "^29.0.1"
   },
