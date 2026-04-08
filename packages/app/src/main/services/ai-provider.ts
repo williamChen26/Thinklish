@@ -1,5 +1,5 @@
 import type { LookupType } from '@thinklish/shared';
-import { findFirstAvailableAgent } from './acp-agents';
+import { findFirstAvailableAgent, getAvailableAgents } from './acp-agents';
 import { queryViaAcp, type AcpQueryHandle } from './acp-connection';
 import skillRaw from './english-intuition.md?raw';
 
@@ -61,18 +61,29 @@ function buildFullPrompt(input: {
 
 const TIMEOUT_MS = 60_000;
 
+export interface ExplainResult {
+  handle: AcpQueryHandle | null;
+  agentName: string;
+}
+
 export function explainTextStream(
   input: { selectedText: string; contextBefore: string; contextAfter: string },
+  aiProvider: string,
   callbacks: StreamCallbacks,
-): AcpQueryHandle | null {
-  const agent = findFirstAvailableAgent();
+): ExplainResult {
+  const agent = aiProvider === 'auto'
+    ? findFirstAvailableAgent()
+    : getAvailableAgents().find((a) => a.adapter.id === aiProvider) ?? null;
+
   if (!agent || agent.status !== 'ready' || !agent.entry) {
-    callbacks.onError(
-      '未找到可用的 AI Agent。请安装以下任一工具：\n' +
-      '• Claude Code: https://docs.anthropic.com/en/docs/claude-code\n' +
-      '• Codex CLI: https://github.com/openai/codex'
-    );
-    return null;
+    const hints = getAvailableAgents()
+      .map((a) => `• ${a.adapter.name}: ${a.installHint.split(': ')[1] ?? a.adapter.installUrl}`)
+      .join('\n');
+    const msg = aiProvider === 'auto'
+      ? `未找到可用的 AI Agent。请安装以下任一工具：\n${hints}`
+      : `AI Agent "${aiProvider}" 未安装或不可用。`;
+    callbacks.onError(msg);
+    return { handle: null, agentName: '' };
   }
 
   const mode = detectMode(input.selectedText);
@@ -108,7 +119,7 @@ export function explainTextStream(
     callbacks.onError('AI 响应超时（60 秒），请重试');
   }, TIMEOUT_MS);
 
-  return handle;
+  return { handle, agentName: agent.adapter.name };
 }
 
 export { detectMode, buildFullPrompt };

@@ -70,8 +70,9 @@ function spawnAdapter(entry: ResolvedEntry): ChildProcess {
   };
 
   if (entry.kind === 'native') {
-    console.log(`[acp-conn] spawning native binary: ${entry.filePath}`);
-    return spawn(entry.filePath, [], {
+    const args = entry.acpArgs ?? [];
+    console.log(`[acp-conn] spawning native binary: ${entry.filePath} ${args.join(' ')}`.trimEnd());
+    return spawn(entry.filePath, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       env,
     });

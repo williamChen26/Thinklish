@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Article } from '@thinklish/shared';
-import { articlesAPI } from '../../lib/api';
+import { articlesAPI, aiAPI, type AgentInfo } from '../../lib/api';
 import { useSettings } from '../../hooks/useSettings';
 import { ReaderToolbar } from './ReaderToolbar';
 import { ReaderContent } from './ReaderContent';
@@ -13,7 +13,8 @@ interface ReaderViewProps {
 export function ReaderView({ articleId, onBack }: ReaderViewProps): JSX.Element {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
-  const { settings, toggleTheme, cycleFontSize, cycleContentWidth } = useSettings();
+  const [agents, setAgents] = useState<AgentInfo[]>([]);
+  const { settings, updateSettings, toggleTheme, cycleFontSize, cycleContentWidth } = useSettings();
 
   useEffect(() => {
     setLoading(true);
@@ -22,6 +23,10 @@ export function ReaderView({ articleId, onBack }: ReaderViewProps): JSX.Element 
       setLoading(false);
     });
   }, [articleId]);
+
+  useEffect(() => {
+    aiAPI.getAgents().then(setAgents);
+  }, []);
 
   if (loading) {
     return (
@@ -51,10 +56,12 @@ export function ReaderView({ articleId, onBack }: ReaderViewProps): JSX.Element 
       <ReaderToolbar
         settings={settings}
         articleTitle={article.title}
+        agents={agents}
         onBack={onBack}
         onToggleTheme={toggleTheme}
         onCycleFontSize={cycleFontSize}
         onCycleContentWidth={cycleContentWidth}
+        onChangeAiProvider={(provider) => updateSettings({ aiProvider: provider })}
       />
       <ReaderContent
         articleId={article.id}

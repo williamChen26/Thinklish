@@ -15,4 +15,5 @@
 | `2026-04-06-english-studio` | Build an Electron desktop app for English learners | 7 | 7 | 2026-04-06 |
 | `2026-04-06-ai-skill-streaming` | Integrate english-intuition skill + streaming markdown | 2 | 2 | 2026-04-06 |
 | `2026-04-06-fix-streaming` | Fix AI output streaming via stream-json + race condition | 1 | 1 | 2026-04-06 |
+| `2026-04-08-ai-provider-settings` | Cursor ACP + AI 工具设置 + 浮窗增强 | 4 | 4 | 2026-04-08 | +2 hotfixes |
 

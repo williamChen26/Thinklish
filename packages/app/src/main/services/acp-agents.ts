@@ -1,10 +1,12 @@
 import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 export interface ResolvedEntry {
   filePath: string;
   kind: 'node' | 'native';
+  acpArgs?: string[];
 }
 
 export interface AgentAdapter {
@@ -48,6 +50,23 @@ function resolveClaudeEntry(): ResolvedEntry | null {
   return { filePath, kind: 'node' };
 }
 
+function findBinaryInPath(name: string): string | null {
+  const shells = [process.env['SHELL'], '/bin/zsh', '/bin/bash'].filter(Boolean) as string[];
+  for (const sh of shells) {
+    try {
+      const result = execSync(`${sh} -lic "which ${name}"`, {
+        encoding: 'utf8',
+        timeout: 5000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }).trim();
+      if (result && existsSync(result)) return result;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 function resolveCodexEntry(): ResolvedEntry | null {
   const platformPkg = `@zed-industries/codex-acp-${process.platform}-${process.arch}`;
   const binaryName = process.platform === 'win32' ? 'codex-acp.exe' : 'codex-acp';
@@ -71,6 +90,12 @@ function resolveCodexEntry(): ResolvedEntry | null {
   return null;
 }
 
+function resolveCursorEntry(): ResolvedEntry | null {
+  const binPath = findBinaryInPath('cursor-agent');
+  if (!binPath) return null;
+  return { filePath: binPath, kind: 'native', acpArgs: ['acp'] };
+}
+
 const BUILTIN_ADAPTERS: readonly AgentAdapter[] = [
   {
     id: 'claude',
@@ -85,6 +110,13 @@ const BUILTIN_ADAPTERS: readonly AgentAdapter[] = [
     adapterPackage: '@zed-industries/codex-acp',
     installUrl: 'https://github.com/openai/codex',
     resolveEntry: resolveCodexEntry,
+  },
+  {
+    id: 'cursor',
+    name: 'Cursor',
+    adapterPackage: '',
+    installUrl: 'https://cursor.com/',
+    resolveEntry: resolveCursorEntry,
   },
 ];
 

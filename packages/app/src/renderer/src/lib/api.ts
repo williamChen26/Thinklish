@@ -5,8 +5,15 @@ export type AddArticleResult =
   | { success: false; error: string };
 
 export type AiStreamStartResult =
-  | { success: true; streamId: string }
+  | { success: true; streamId: string; agentName: string }
   | { success: false; error: string };
+
+export interface AgentInfo {
+  id: string;
+  name: string;
+  status: 'ready' | 'not_found';
+  installUrl: string;
+}
 
 export interface AiStreamChunkEvent {
   streamId: string;
@@ -34,10 +41,14 @@ export const articlesAPI = {
 };
 
 export const aiAPI = {
+  getAgents: (): Promise<AgentInfo[]> =>
+    window.electron.invoke('ai:getAgents') as Promise<AgentInfo[]>,
+
   explain: (input: {
     selectedText: string;
     contextBefore: string;
     contextAfter: string;
+    aiProvider: string;
   }): Promise<AiStreamStartResult> =>
     window.electron.invoke('ai:explain', input) as Promise<AiStreamStartResult>,
 

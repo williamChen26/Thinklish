@@ -1,15 +1,26 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import type { AcpQueryHandle } from '../services/acp-connection';
 import { explainTextStream, detectMode } from '../services/ai-provider';
+import { getAvailableAgents } from '../services/acp-agents';
 
 const activeStreams = new Map<string, AcpQueryHandle>();
 let streamCounter = 0;
 
 export function registerAiHandlers(getWindow: () => BrowserWindow | null): void {
+  ipcMain.handle('ai:getAgents', () => {
+    return getAvailableAgents().map((a) => ({
+      id: a.adapter.id,
+      name: a.adapter.name,
+      status: a.status,
+      installUrl: a.adapter.installUrl,
+    }));
+  });
+
   ipcMain.handle('ai:explain', async (_event, input: {
     selectedText: string;
     contextBefore: string;
     contextAfter: string;
+    aiProvider: string;
   }) => {
     const streamId = `stream-${++streamCounter}-${Date.now()}`;
     const win = getWindow();
@@ -17,7 +28,7 @@ export function registerAiHandlers(getWindow: () => BrowserWindow | null): void 
       return { success: false, error: '窗口未就绪' };
     }
 
-    const handle = explainTextStream(input, {
+    const { handle, agentName } = explainTextStream(input, input.aiProvider ?? 'auto', {
       onChunk: (chunk: string) => {
         if (win.isDestroyed()) return;
         win.webContents.send('ai:stream-chunk', { streamId, chunk, done: false });
@@ -36,7 +47,7 @@ export function registerAiHandlers(getWindow: () => BrowserWindow | null): void 
 
     if (handle) {
       activeStreams.set(streamId, handle);
-      return { success: true, streamId };
+      return { success: true, streamId, agentName };
     }
 
     return { success: false, error: '无法启动 AI 进程' };

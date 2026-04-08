@@ -19,7 +19,6 @@ Thinklish 桌面端用户。他们在阅读英文文章时选中文本，依赖 
 
 - [Agent Client Protocol (ACP)](https://agentclientprotocol.com/get-started/introduction) 已稳定至 v1，TypeScript SDK（`@agentclientprotocol/sdk`）可直接使用。
 - 主流 AI coding agent 已全面接入 ACP：Claude Code、Codex CLI、Gemini CLI、Kimi CLI、OpenCode、GitHub Copilot、Goose、Junie 等。
-- 同类产品 [spool](https://github.com/spool-lab/spool) 已有生产级 ACP 集成实现可参考。
 - 现有 `ai-provider.ts` 代码量小（225 行），迁移窗口最佳。
 
 ## 方案概述
@@ -35,12 +34,11 @@ ACP（Agent Client Protocol）是标准化 editor/IDE 与 AI coding agent 之间
 - **流式输出**: 通过 `session/update` 通知推送 `agent_message_chunk`、`tool_call` 等事件
 
 ### 连接模式
-
-参考 spool 实现，支持以下连接模式：
+支持以下连接模式：
 
 | 模式 | 启动方式 | 适用 agent |
 |------|----------|-----------|
-| `extension` | 通过 `acp-extension-{name}` npm 包启动 | Claude Code, Codex CLI |
+| `extension` | 通过 npm 包启动 | Claude Code, Codex CLI |
 | `native` | 直接执行 `{bin} acp` | Kimi CLI, OpenCode, Gemini CLI |
 | `sdk` | 进程内运行，使用 API key 直接调用 | 内置 agent（无需安装外部 CLI） |
 
@@ -129,4 +127,3 @@ Client (Thinklish)                    Agent (Claude/Gemini/...)
 - [ACP TypeScript SDK](https://www.npmjs.com/package/@agentclientprotocol/sdk)
 - [ACP 协议概览（生命周期）](https://agentclientprotocol.com/protocol/overview)
 - [ACP 已接入 Agent 列表](https://agentclientprotocol.com/get-started/agents)
-- [spool ACP 实现参考](https://github.com/spool-lab/spool/blob/main/packages/app/src/main/acp.ts)

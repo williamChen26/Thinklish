@@ -1,13 +1,16 @@
-import type { ReaderSettings } from '../../hooks/useSettings';
+import type { ReaderSettings, AiProvider } from '../../hooks/useSettings';
+import type { AgentInfo } from '../../lib/api';
 import { cn } from '../../lib/utils';
 
 interface ReaderToolbarProps {
   settings: ReaderSettings;
   articleTitle: string;
+  agents: AgentInfo[];
   onBack: () => void;
   onToggleTheme: () => void;
   onCycleFontSize: () => void;
   onCycleContentWidth: () => void;
+  onChangeAiProvider: (provider: AiProvider) => void;
 }
 
 const FONT_SIZE_LABEL: Record<string, string> = {
@@ -31,10 +34,12 @@ const WIDTH_LABEL: Record<string, string> = {
 export function ReaderToolbar({
   settings,
   articleTitle,
+  agents,
   onBack,
   onToggleTheme,
   onCycleFontSize,
-  onCycleContentWidth
+  onCycleContentWidth,
+  onChangeAiProvider,
 }: ReaderToolbarProps): JSX.Element {
   return (
     <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border">
@@ -56,6 +61,29 @@ export function ReaderToolbar({
 
         {/* Controls */}
         <div className="flex items-center gap-1 shrink-0">
+          {/* AI Provider */}
+          <select
+            value={settings.aiProvider}
+            onChange={(e) => onChangeAiProvider(e.target.value as AiProvider)}
+            title="AI Provider"
+            className={cn(
+              'h-8 px-2 rounded-md text-xs',
+              'bg-transparent text-muted-foreground',
+              'border border-border hover:border-foreground/20',
+              'focus:outline-none focus:ring-1 focus:ring-ring',
+              'transition-colors cursor-pointer'
+            )}
+          >
+            <option value="auto">Auto</option>
+            {agents.map((agent) => (
+              <option key={agent.id} value={agent.id} disabled={agent.status !== 'ready'}>
+                {agent.name}{agent.status !== 'ready' ? ' (未安装)' : ''}
+              </option>
+            ))}
+          </select>
+
+          <div className="w-px h-4 bg-border mx-1" />
+
           {/* Font size */}
           <button
             type="button"
