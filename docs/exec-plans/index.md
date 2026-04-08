@@ -47,7 +47,7 @@ active/<run-id>/
     sprint-1/
       contract.md              # Generator 提出、Evaluator 审定的 sprint 合同
       build-log.md             # Generator 实现日志 + 自评
-      evaluation.md            # Evaluator 验收结果
+      evaluation.md            # Evaluator 验收结果（必须产出）
       iterations/
         round-2/
           feedback.md          # Evaluator 返工反馈
@@ -57,6 +57,8 @@ active/<run-id>/
       build-log.md
       evaluation.md
     ...
+  hotfixes/                    # Post-completion 修复记录（归档后由 /hotfix 创建）
+    hotfix-log.md              # 结构化 hotfix 记录（现象、根因、修复、教训）
 ```
 
 ### meta.json schema
@@ -88,6 +90,16 @@ active/<run-id>/
       "verdict": "passed",
       "started": "ISO",
       "completed": "ISO"
+    }
+  ],
+  "hotfixes": [
+    {
+      "id": "HF1",
+      "affects_feature": "F1",
+      "affects_sprint": 1,
+      "title": "简述修复内容",
+      "date": "YYYY-MM-DD",
+      "files": ["changed/file/paths"]
     }
   ]
 }
@@ -146,6 +158,36 @@ COMPLETED
 3. Sprint 循环推进，每个 sprint 在 `sprints/sprint-N/` 下产出
 4. 所有功能完成后，**Harness Phase 3** 将运行目录移动到 `completed/<run-id>/`（归档由 Harness 全权负责，见 `.claude/skills/harness/SKILL.md`）
 5. 补技术债记录到 `tech-debt-tracker.md`
+6. （可选）人工测试发现 bug → **`/hotfix`** 修复代码并写入记录
+
+### /hotfix 修复路径
+
+`/hotfix` 支持两种模式，覆盖所有轻量级 bug 修复场景：
+
+```
+发现 bug
+    │
+    ├─ 与某个 harness 运行相关？
+    │     │
+    │     yes → /hotfix <run-id> <bug>    (关联模式)
+    │     │     ├─ completed/<run-id>/hotfixes/hotfix-log.md
+    │     │     ├─ meta.json  (追加 hotfixes 数组)
+    │     │     ├─ build-log.md  (追加 Errata)
+    │     │     └─ history.log + README.md
+    │     │
+    │     no → /hotfix <bug>              (通用模式)
+    │           └─ completed/standalone-fixes.md
+    │           └─ history.log  (追加独立行)
+    │
+    └─ 影响范围 >5 files？ → 启动新的 /harness 运行
+```
+
+**记录文件位置：**
+
+| 模式 | 主记录 | 辅助记录 |
+|------|--------|---------|
+| 关联模式 | `completed/<run-id>/hotfixes/hotfix-log.md` | `meta.json`, `build-log.md`, `history.log`, `README.md` |
+| 通用模式 | `completed/standalone-fixes.md` | `history.log` |
 
 ## 计划模板 (手动执行计划)
 
