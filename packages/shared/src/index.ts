@@ -12,5 +12,8 @@ export type {
 
 export type {
   Card,
-  CardCreateInput
+  CardBucket,
+  CardCreateInput,
+  CardStats,
+  CardWithBucket
 } from './types/card';

@@ -3,3 +3,6 @@
 2026-04-06-fix-streaming | 1 features | 1 sprints | 1 rounds | 2026-04-06
 2026-04-07-acp-migration | 3 features | 3 sprints | 3 rounds | 2026-04-07
 2026-04-08-ai-provider-settings | 4 features | 4 sprints | 4 rounds | 2026-04-08 | +2 hotfixes (HF1: cursor→cursor-agent, HF2: panel positioning)
+SF-2026-04-09-1 | standalone fix | Generate Card 成功时无 UI 反馈 | 2026-04-09
+2026-04-09-card-insight-dashboard | 5 features | 5 sprints | 5 rounds | 2026-04-09
+SF-2026-04-09-2 | standalone fix | Review 卡片内容过长时无法滚动 | 2026-04-09

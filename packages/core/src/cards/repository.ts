@@ -1,5 +1,5 @@
 import { getDatabase } from '../database/connection';
-import type { Card, CardCreateInput } from '@thinklish/shared';
+import type { Card, CardBucket, CardCreateInput, CardStats, CardWithBucket } from '@thinklish/shared';
 
 interface CardRow {
   id: number;
@@ -28,6 +28,18 @@ function mapRowToCard(row: CardRow): Card {
     easeFactor: row.ease_factor,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+interface CardWithBucketRow extends CardRow {
+  bucket: string;
+}
+
+function mapRowToCardWithBucket(row: CardWithBucketRow): CardWithBucket {
+  const base = mapRowToCard(row);
+  return {
+    ...base,
+    bucket: row.bucket as CardBucket
   };
 }
 
@@ -76,6 +88,63 @@ export function getDueCards(): Card[] {
     "SELECT * FROM cards WHERE next_review_at <= datetime('now') ORDER BY next_review_at ASC"
   ).all() as CardRow[];
   return rows.map(mapRowToCard);
+}
+
+export function getCardsWithBucket(): CardWithBucket[] {
+  const db = getDatabase();
+  const rows = db
+    .prepare(`
+    SELECT
+      id,
+      lookup_id,
+      front,
+      back,
+      tags,
+      next_review_at,
+      interval,
+      repetitions,
+      ease_factor,
+      created_at,
+      updated_at,
+      CASE
+        WHEN next_review_at <= datetime('now') THEN 'due'
+        WHEN next_review_at > datetime('now') AND interval < 7 THEN 'learning'
+        WHEN next_review_at > datetime('now') AND interval >= 7 THEN 'mastered'
+        ELSE 'mastered'
+      END AS bucket
+    FROM cards
+    ORDER BY next_review_at ASC
+  `)
+    .all() as CardWithBucketRow[];
+  return rows.map(mapRowToCardWithBucket);
+}
+
+interface CardStatsRow {
+  total: number;
+  due: number;
+  learning: number;
+  mastered: number;
+}
+
+export function getCardStats(): CardStats {
+  const db = getDatabase();
+  const row = db
+    .prepare(`
+    SELECT
+      COUNT(*) AS total,
+      COALESCE(SUM(CASE WHEN next_review_at <= datetime('now') THEN 1 ELSE 0 END), 0) AS due,
+      COALESCE(SUM(CASE WHEN next_review_at > datetime('now') AND interval < 7 THEN 1 ELSE 0 END), 0) AS learning,
+      COALESCE(SUM(CASE WHEN next_review_at > datetime('now') AND interval >= 7 THEN 1 ELSE 0 END), 0) AS mastered
+    FROM cards
+  `)
+    .get() as CardStatsRow;
+
+  return {
+    total: Number(row.total),
+    due: Number(row.due),
+    learning: Number(row.learning),
+    mastered: Number(row.mastered)
+  };
 }
 
 export function updateCardReview(id: number, interval: number, repetitions: number, easeFactor: number): void {

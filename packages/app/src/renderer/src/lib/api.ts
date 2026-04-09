@@ -1,4 +1,13 @@
-import type { Article, ArticleCreateInput, Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@thinklish/shared';
+import type {
+  Article,
+  ArticleCreateInput,
+  CardStats,
+  CardWithBucket,
+  Lookup,
+  LookupCreateInput,
+  LookupType,
+  MasteryStatus
+} from '@thinklish/shared';
 
 export type AddArticleResult =
   | { success: true; article: Article }
@@ -80,8 +89,14 @@ export const cardsAPI = {
   getAll: (): Promise<unknown[]> =>
     window.electron.invoke('cards:getAll') as Promise<unknown[]>,
 
+  getAllWithBucket: (): Promise<CardWithBucket[]> =>
+    window.electron.invoke('cards:getAllWithBucket') as Promise<CardWithBucket[]>,
+
   getDue: (): Promise<unknown[]> =>
     window.electron.invoke('cards:getDue') as Promise<unknown[]>,
+
+  getStats: (): Promise<CardStats> =>
+    window.electron.invoke('cards:getStats') as Promise<CardStats>,
 
   review: (id: number, interval: number, repetitions: number, easeFactor: number): Promise<void> =>
     window.electron.invoke('cards:review', id, interval, repetitions, easeFactor) as Promise<void>,

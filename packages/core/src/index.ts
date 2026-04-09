@@ -19,6 +19,8 @@ export {
   getCardById,
   getCardByLookupId,
   getDueCards,
+  getCardsWithBucket,
+  getCardStats,
   updateCardReview,
   exportCardsAsTsv
 } from './cards/repository';

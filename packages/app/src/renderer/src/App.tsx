@@ -4,6 +4,7 @@ import { ArticlesView } from './components/ArticlesView';
 import { ReaderView } from './components/reader/ReaderView';
 import { LearningLogView } from './components/LearningLogView';
 import { ReviewView } from './components/ReviewView';
+import { CardOverviewView } from './components/CardOverviewView';
 import { cardsAPI } from './lib/api';
 
 function App(): JSX.Element {
@@ -12,8 +13,8 @@ function App(): JSX.Element {
   const [reviewCount, setReviewCount] = useState(0);
 
   const refreshReviewCount = useCallback(async () => {
-    const due = await cardsAPI.getDue();
-    setReviewCount((due as unknown[]).length);
+    const stats = await cardsAPI.getStats();
+    setReviewCount(stats.due);
   }, []);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ function App(): JSX.Element {
   const handleNavChange = (nav: NavItem): void => {
     setActiveNav(nav);
     setSelectedArticleId(null);
-    if (nav === 'review') refreshReviewCount();
+    refreshReviewCount();
   };
 
   return (
@@ -45,6 +46,10 @@ function App(): JSX.Element {
         )}
 
         {activeNav === 'log' && <LearningLogView />}
+
+        {activeNav === 'cardOverview' && (
+          <CardOverviewView onGoToLearningLog={() => setActiveNav('log')} />
+        )}
 
         {activeNav === 'review' && <ReviewView />}
       </main>

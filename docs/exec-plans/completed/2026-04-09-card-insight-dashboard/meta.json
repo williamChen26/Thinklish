@@ -1,0 +1,17 @@
+{
+  "run_id": "2026-04-09-card-insight-dashboard",
+  "status": "completed",
+  "created_at": "2026-04-09",
+  "updated_at": "2026-04-09",
+  "requirement": "加强用户体验：添加卡片总览入口，让用户一目了然已有的 Anki 词汇卡数量、复习状态分布（待复习/复习中/已掌握），提供 insight 仪表盘。",
+  "spec_features": [
+    { "id": "F1", "title": "卡片总览主导航入口与页面骨架", "priority": "P0", "status": "completed" },
+    { "id": "F2", "title": "卡片聚合指标与状态分桶", "priority": "P0", "status": "completed" },
+    { "id": "F3", "title": "洞察仪表盘可视化", "priority": "P1", "status": "completed" },
+    { "id": "F4", "title": "可筛选的全量卡片清单", "priority": "P1", "status": "completed" },
+    { "id": "F5", "title": "与侧边栏复习提示的跨界面一致性", "priority": "P1", "status": "completed" }
+  ],
+  "current_sprint": null,
+  "total_sprints": 5,
+  "total_rounds": 5
+}
