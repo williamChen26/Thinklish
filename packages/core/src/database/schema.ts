@@ -1,7 +1,40 @@
 import type Database from 'better-sqlite3';
 
+function tableHasColumn(db: Database.Database, table: string, column: string): boolean {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  return rows.some((r) => r.name === column);
+}
+
+/** Add article columns for feed ingestion on existing databases (SQLite has no IF NOT EXISTS for ADD COLUMN). */
+function migrateArticlesFeedColumns(db: Database.Database): void {
+  if (!tableHasColumn(db, 'articles', 'source_id')) {
+    db.exec(`
+      ALTER TABLE articles ADD COLUMN source_id INTEGER REFERENCES ingestion_sources(id) ON DELETE SET NULL;
+    `);
+  }
+  if (!tableHasColumn(db, 'articles', 'feed_item_id')) {
+    db.exec(`ALTER TABLE articles ADD COLUMN feed_item_id TEXT;`);
+  }
+  if (!tableHasColumn(db, 'articles', 'is_stub')) {
+    db.exec(`ALTER TABLE articles ADD COLUMN is_stub INTEGER NOT NULL DEFAULT 0 CHECK (is_stub IN (0, 1));`);
+  }
+}
+
 export function createTables(db: Database.Database): void {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS ingestion_sources (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      source_type TEXT NOT NULL CHECK (source_type IN ('feed', 'watch')),
+      status TEXT NOT NULL DEFAULT 'enabled' CHECK (status IN ('enabled', 'paused')),
+      english_only INTEGER NOT NULL DEFAULT 1 CHECK (english_only IN (0, 1)),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_success_at TEXT,
+      last_error TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS articles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT NOT NULL,
@@ -11,7 +44,10 @@ export function createTables(db: Database.Database): void {
       source_domain TEXT NOT NULL,
       published_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      source_id INTEGER REFERENCES ingestion_sources(id) ON DELETE SET NULL,
+      feed_item_id TEXT,
+      is_stub INTEGER NOT NULL DEFAULT 0 CHECK (is_stub IN (0, 1))
     );
 
     CREATE TABLE IF NOT EXISTS lookups (
@@ -41,24 +77,15 @@ export function createTables(db: Database.Database): void {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE INDEX IF NOT EXISTS idx_ingestion_sources_status ON ingestion_sources(status);
+    CREATE INDEX IF NOT EXISTS idx_articles_feed_item_id ON articles(feed_item_id);
     CREATE INDEX IF NOT EXISTS idx_lookups_article_id ON lookups(article_id);
     CREATE INDEX IF NOT EXISTS idx_lookups_mastery_status ON lookups(mastery_status);
     CREATE INDEX IF NOT EXISTS idx_cards_lookup_id ON cards(lookup_id);
     CREATE INDEX IF NOT EXISTS idx_cards_next_review_at ON cards(next_review_at);
-
-    CREATE TABLE IF NOT EXISTS ingestion_sources (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      url TEXT NOT NULL UNIQUE,
-      label TEXT NOT NULL,
-      source_type TEXT NOT NULL CHECK (source_type IN ('feed', 'watch')),
-      status TEXT NOT NULL DEFAULT 'enabled' CHECK (status IN ('enabled', 'paused')),
-      english_only INTEGER NOT NULL DEFAULT 1 CHECK (english_only IN (0, 1)),
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-      last_success_at TEXT,
-      last_error TEXT
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_ingestion_sources_status ON ingestion_sources(status);
   `);
+
+  migrateArticlesFeedColumns(db);
+
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_articles_feed_item_id ON articles(feed_item_id);`);
 }

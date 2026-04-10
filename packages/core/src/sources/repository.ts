@@ -187,3 +187,25 @@ export function getEnabledSources(): IngestionSource[] {
     .all() as IngestionSourceRow[];
   return rows.map(mapRowToSource);
 }
+
+export function recordSourceFeedSuccess(id: number): void {
+  const db = getDatabase();
+  db.prepare(
+    `
+    UPDATE ingestion_sources
+    SET last_success_at = datetime('now'), last_error = NULL, updated_at = datetime('now')
+    WHERE id = ?
+  `
+  ).run(id);
+}
+
+export function recordSourceFeedFailure(id: number, message: string): void {
+  const db = getDatabase();
+  db.prepare(
+    `
+    UPDATE ingestion_sources
+    SET last_error = @message, updated_at = datetime('now')
+    WHERE id = @id
+  `
+  ).run({ id, message });
+}

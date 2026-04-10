@@ -2,6 +2,7 @@ export { initDatabase, getDatabase, closeDatabase } from './database/connection'
 export { createTables } from './database/schema';
 export {
   createArticle,
+  fillArticleFromExtraction,
   getAllArticles,
   getArticleById,
   deleteArticle
@@ -15,6 +16,7 @@ export {
   setSourcePaused,
   updateSource
 } from './sources/repository';
+export { fetchFeed, ingestFeedXml } from './ingestion/feed-fetcher';
 export {
   createLookup,
   getAllLookups,
