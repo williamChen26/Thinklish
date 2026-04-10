@@ -41,3 +41,32 @@ Non-harness bug fixes. Each entry is a self-contained fix record.
 
 ### 经验教训
 任何展示用户生成内容或 AI 生成内容的容器都必须设置 `max-h` + `overflow-y-auto`，因为内容长度不可预测。`dangerouslySetInnerHTML` 渲染的 HTML 更应如此——AI 的回复长度完全不受控。
+
+---
+
+## SF-2026-04-10-1: 打包后 ACP 适配器无法找到 Claude Code / Codex
+
+- **日期**: 2026-04-10
+- **影响模块**: ACP agent 解析 + 连接 (main process)
+- **文件**: `packages/app/electron-builder.yml`, `packages/app/src/main/services/acp-agents.ts`, `packages/app/src/main/services/acp-connection.ts`
+
+### 现象
+`pnpm dev` 本地开发时 AI 功能正常，但 `electron-builder` 打包后启动 app 无法找到 Claude Code 和 Codex agent，所有 agent 状态为 `not_found`。
+
+### 根因
+两层错误叠加：
+
+1. **`fixAsarPath` 对 `kind: 'node'` 的 JS 适配器无条件转换路径**：`require.resolve()` 在 asar 内成功定位文件，但 `fixAsarPath()` 将路径从 `app.asar/...` 转为 `app.asar.unpacked/...`，而适配器包未列入 `asarUnpack`，导致 `existsSync()` 在 unpacked 路径上必然失败。
+2. **即使加入 `asarUnpack` 也不够**：子 `node` 进程没有 Electron 的 asar 补丁，无法读取仍在 asar 内的传递依赖（`@agentclientprotocol/sdk`、`@anthropic-ai/claude-agent-sdk`、`zod`），spawn 后会因模块解析失败而崩溃。
+
+### 修复
+按 `kind` 分策略：
+
+| 变更 | 说明 |
+|------|------|
+| `electron-builder.yml` | 为 Codex 原生二进制加入 `asarUnpack`（`@zed-industries/codex-acp-*/**`） |
+| `acp-agents.ts` | `kind: 'node'` 的 resolve 函数不再做 `fixAsarPath` + `existsSync`，保留 asar 内部路径；`kind: 'native'` 保持不变 |
+| `acp-connection.ts` | 打包模式下 `kind: 'node'` 用 `ELECTRON_RUN_AS_NODE=1` + `process.execPath` spawn，子进程自带 asar 支持，可读取所有传递依赖 |
+
+### 经验教训
+Electron asar 打包场景下，需要被 `child_process.spawn` 执行的文件分两类处理：(1) 原生二进制必须 `asarUnpack`，因为 OS 不认识 asar；(2) JS 文件应保留 asar 路径 + 用 `ELECTRON_RUN_AS_NODE` spawn，这样子进程天然继承 asar 读取能力，无需枚举全部传递依赖。`fixAsarPath` 只应用于 `kind: 'native'`。

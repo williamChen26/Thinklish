@@ -44,10 +44,7 @@ function resolveClaudeEntry(): ResolvedEntry | null {
   const resolved = tryResolve('@agentclientprotocol/claude-agent-acp/dist/index.js');
   if (!resolved) return null;
 
-  const filePath = fixAsarPath(resolved);
-  if (!existsSync(filePath)) return null;
-
-  return { filePath, kind: 'node' };
+  return { filePath: resolved, kind: 'node' };
 }
 
 function findBinaryInPath(name: string): string | null {
@@ -81,10 +78,7 @@ function resolveCodexEntry(): ResolvedEntry | null {
 
   const jsEntry = tryResolve('@zed-industries/codex-acp/bin/codex-acp.js');
   if (jsEntry) {
-    const filePath = fixAsarPath(jsEntry);
-    if (existsSync(filePath)) {
-      return { filePath, kind: 'node' };
-    }
+    return { filePath: jsEntry, kind: 'node' };
   }
 
   return null;

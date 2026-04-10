@@ -11,6 +11,7 @@ files:
 
 asarUnpack:
   - node_modules/better-sqlite3/**
+  - node_modules/@zed-industries/codex-acp-*/**
 
 npmRebuild: true
 

@@ -78,6 +78,16 @@ function spawnAdapter(entry: ResolvedEntry): ChildProcess {
     });
   }
 
+  const isInAsar = /[/\\]app\.asar[/\\]/.test(entry.filePath);
+  if (isInAsar) {
+    env['ELECTRON_RUN_AS_NODE'] = '1';
+    console.log(`[acp-conn] spawning node adapter (electron-as-node, asar): ${entry.filePath}`);
+    return spawn(process.execPath, [entry.filePath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env,
+    });
+  }
+
   const nodePath = findNodeBinary();
   const useElectronAsNode = nodePath === process.execPath;
   if (useElectronAsNode) {

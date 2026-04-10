@@ -6,3 +6,4 @@
 SF-2026-04-09-1 | standalone fix | Generate Card 成功时无 UI 反馈 | 2026-04-09
 2026-04-09-card-insight-dashboard | 5 features | 5 sprints | 5 rounds | 2026-04-09
 SF-2026-04-09-2 | standalone fix | Review 卡片内容过长时无法滚动 | 2026-04-09
+SF-2026-04-10-1 | standalone fix | 打包后 ACP 适配器无法找到 Claude Code / Codex | 2026-04-10
