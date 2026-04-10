@@ -3,6 +3,7 @@ import type {
   ArticleCreateInput,
   CardStats,
   CardWithBucket,
+  FeedRefreshResult,
   IngestionSource,
   IngestionSourceCreateInput,
   IngestionSourceUpdateInput,
@@ -113,7 +114,10 @@ export const sourcesAPI = {
     window.electron.invoke('sources:setPaused', id, paused) as Promise<SetSourcePausedResult>,
 
   delete: (id: number): Promise<DeleteSourceResult> =>
-    window.electron.invoke('sources:delete', id) as Promise<DeleteSourceResult>
+    window.electron.invoke('sources:delete', id) as Promise<DeleteSourceResult>,
+
+  refreshFeed: (id: number): Promise<FeedRefreshResult> =>
+    window.electron.invoke('sources:refreshFeed', id) as Promise<FeedRefreshResult>
 };
 
 export const cardsAPI = {

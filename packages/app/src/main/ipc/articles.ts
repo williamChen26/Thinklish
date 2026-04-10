@@ -1,12 +1,19 @@
 import { ipcMain } from 'electron';
 import {
   createArticle,
+  fillArticleFromExtraction,
   getAllArticles,
   getArticleById,
   deleteArticle
 } from '@thinklish/core';
-import type { ArticleCreateInput } from '@thinklish/shared';
+import type { Article, ArticleCreateInput } from '@thinklish/shared';
 import { extractArticle } from '../services/article-extractor';
+
+const stubExtractionInFlight = new Map<number, Promise<Article | null>>();
+
+function isPositiveIntegerId(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
 
 export function registerArticleHandlers(): void {
   ipcMain.handle('articles:add', async (_event, url: string) => {
@@ -27,8 +34,41 @@ export function registerArticleHandlers(): void {
     return getAllArticles();
   });
 
-  ipcMain.handle('articles:getById', (_event, id: number) => {
-    return getArticleById(id);
+  ipcMain.handle('articles:getById', async (_event, id: unknown) => {
+    if (!isPositiveIntegerId(id)) {
+      return null;
+    }
+
+    const load = async (): Promise<Article | null> => {
+      const current = getArticleById(id);
+      if (!current) {
+        return null;
+      }
+      if (!current.isStub) {
+        return current;
+      }
+      const result = await extractArticle(current.url);
+      if (result.success) {
+        return fillArticleFromExtraction(id, {
+          title: result.article.title,
+          content: result.article.content,
+          contentHtml: result.article.contentHtml,
+          sourceDomain: result.article.sourceDomain,
+          publishedAt: result.article.publishedAt
+        });
+      }
+      return current;
+    };
+
+    const pending = stubExtractionInFlight.get(id);
+    if (pending) {
+      return pending;
+    }
+    const promise = load().finally(() => {
+      stubExtractionInFlight.delete(id);
+    });
+    stubExtractionInFlight.set(id, promise);
+    return promise;
   });
 
   ipcMain.handle('articles:delete', (_event, id: number) => {

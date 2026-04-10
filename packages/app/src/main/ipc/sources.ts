@@ -2,11 +2,14 @@ import { ipcMain } from 'electron';
 import {
   createSource,
   deleteSource,
+  fetchFeed,
   getAllSources,
+  getSourceById,
   setSourcePaused,
   updateSource
 } from '@thinklish/core';
 import type {
+  FeedRefreshResult,
   IngestionSource,
   IngestionSourceCreateInput,
   IngestionSourceUpdateInput
@@ -112,5 +115,16 @@ export function registerSourceHandlers(): void {
     } catch (err) {
       return { success: false, error: errMessage(err) };
     }
+  });
+
+  ipcMain.handle('sources:refreshFeed', async (_event, id: unknown): Promise<FeedRefreshResult> => {
+    if (!isPositiveIntegerId(id)) {
+      return { ok: false, inserted: 0, updated: 0, skipped: 0, error: 'Invalid source id' };
+    }
+    const source = getSourceById(id);
+    if (!source) {
+      return { ok: false, inserted: 0, updated: 0, skipped: 0, error: 'Source not found' };
+    }
+    return fetchFeed(source);
   });
 }

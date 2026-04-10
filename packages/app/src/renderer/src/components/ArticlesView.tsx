@@ -188,10 +188,21 @@ export function ArticlesView({ onSelectArticle }: ArticlesViewProps): JSX.Elemen
                   <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                     {truncate(article.content, 120)}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {article.sourceLabel ? (
+                      <span className="rounded bg-sky-500/15 px-1.5 py-0.5 font-medium text-sky-800 dark:text-sky-200">
+                        {article.sourceLabel}
+                      </span>
+                    ) : null}
                     <span>{article.sourceDomain}</span>
                     <span>·</span>
                     <span>{formatRelativeTime(article.createdAt)}</span>
+                    {article.isStub ? (
+                      <>
+                        <span>·</span>
+                        <span className="text-amber-700 dark:text-amber-300">Preview</span>
+                      </>
+                    ) : null}
                   </div>
                 </button>
               </li>

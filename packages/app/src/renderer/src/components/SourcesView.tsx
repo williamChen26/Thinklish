@@ -49,6 +49,7 @@ export function SourcesView(): JSX.Element {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [loading, setLoading] = useState(false);
+  const [refreshingId, setRefreshingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadSources = useCallback(async () => {
@@ -134,6 +135,18 @@ export function SourcesView(): JSX.Element {
       await loadSources();
     } else {
       setError(result.error);
+    }
+  };
+
+  const handleRefreshFeed = async (s: IngestionSource): Promise<void> => {
+    if (s.sourceType !== 'feed') return;
+    setError(null);
+    setRefreshingId(s.id);
+    const result = await sourcesAPI.refreshFeed(s.id);
+    await loadSources();
+    setRefreshingId(null);
+    if (!result.ok) {
+      setError(result.error ?? 'Feed refresh failed');
     }
   };
 
@@ -299,6 +312,11 @@ export function SourcesView(): JSX.Element {
                       <span className="break-all" title={s.url}>
                         {truncate(s.url, 48)}
                       </span>
+                      {s.lastError ? (
+                        <div className="mt-1 text-[11px] text-destructive break-words" role="alert">
+                          {s.lastError}
+                        </div>
+                      ) : null}
                     </td>
                     <td className="px-3 py-2 align-top">
                       <StatusBadge status={s.status} />
@@ -330,6 +348,17 @@ export function SourcesView(): JSX.Element {
                         </div>
                       ) : (
                         <div className="flex flex-wrap gap-1 justify-end">
+                          {s.sourceType === 'feed' ? (
+                            <button
+                              type="button"
+                              onClick={() => void handleRefreshFeed(s)}
+                              disabled={refreshingId === s.id || s.status !== 'enabled'}
+                              className="h-8 px-2 rounded border border-input text-xs hover:bg-muted disabled:opacity-50"
+                              title={s.status !== 'enabled' ? 'Resume source to refresh' : 'Fetch latest items from feed'}
+                            >
+                              {refreshingId === s.id ? 'Refreshing…' : 'Refresh'}
+                            </button>
+                          ) : null}
                           <button
                             type="button"
                             onClick={() => startEdit(s)}
