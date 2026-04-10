@@ -3,6 +3,9 @@ import type {
   ArticleCreateInput,
   CardStats,
   CardWithBucket,
+  IngestionSource,
+  IngestionSourceCreateInput,
+  IngestionSourceUpdateInput,
   Lookup,
   LookupCreateInput,
   LookupType,
@@ -80,6 +83,37 @@ export const lookupsAPI = {
 
   updateStatus: (id: number, status: MasteryStatus): Promise<void> =>
     window.electron.invoke('lookups:updateStatus', id, status) as Promise<void>
+};
+
+export type CreateSourceResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type UpdateSourceResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type SetSourcePausedResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type DeleteSourceResult = { success: true } | { success: false; error: string };
+
+export const sourcesAPI = {
+  list: (): Promise<IngestionSource[]> =>
+    window.electron.invoke('sources:list') as Promise<IngestionSource[]>,
+
+  create: (input: IngestionSourceCreateInput): Promise<CreateSourceResult> =>
+    window.electron.invoke('sources:create', input) as Promise<CreateSourceResult>,
+
+  update: (id: number, input: IngestionSourceUpdateInput): Promise<UpdateSourceResult> =>
+    window.electron.invoke('sources:update', id, input) as Promise<UpdateSourceResult>,
+
+  setPaused: (id: number, paused: boolean): Promise<SetSourcePausedResult> =>
+    window.electron.invoke('sources:setPaused', id, paused) as Promise<SetSourcePausedResult>,
+
+  delete: (id: number): Promise<DeleteSourceResult> =>
+    window.electron.invoke('sources:delete', id) as Promise<DeleteSourceResult>
 };
 
 export const cardsAPI = {

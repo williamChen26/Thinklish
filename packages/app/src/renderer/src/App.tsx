@@ -5,6 +5,7 @@ import { ReaderView } from './components/reader/ReaderView';
 import { LearningLogView } from './components/LearningLogView';
 import { ReviewView } from './components/ReviewView';
 import { CardOverviewView } from './components/CardOverviewView';
+import { SourcesView } from './components/SourcesView';
 import { cardsAPI } from './lib/api';
 
 function App(): JSX.Element {
@@ -44,6 +45,8 @@ function App(): JSX.Element {
             onBack={() => setSelectedArticleId(null)}
           />
         )}
+
+        {activeNav === 'sources' && <SourcesView />}
 
         {activeNav === 'log' && <LearningLogView />}
 

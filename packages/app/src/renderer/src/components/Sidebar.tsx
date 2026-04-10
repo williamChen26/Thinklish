@@ -1,6 +1,6 @@
 import { cn } from '../lib/utils';
 
-export type NavItem = 'articles' | 'log' | 'cardOverview' | 'review';
+export type NavItem = 'articles' | 'sources' | 'log' | 'cardOverview' | 'review';
 
 interface NavEntry {
   id: NavItem;
@@ -10,6 +10,7 @@ interface NavEntry {
 
 const NAV_ITEMS: NavEntry[] = [
   { id: 'articles', label: 'Articles', icon: '📄' },
+  { id: 'sources', label: 'Sources', icon: '📡' },
   { id: 'log', label: 'Learning Log', icon: '📝' },
   { id: 'cardOverview', label: 'Card overview', icon: '📊' },
   { id: 'review', label: 'Review', icon: '🔄' }

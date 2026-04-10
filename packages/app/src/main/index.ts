@@ -6,6 +6,7 @@ import { registerArticleHandlers } from './ipc/articles';
 import { registerAiHandlers } from './ipc/ai';
 import { registerLookupHandlers } from './ipc/lookups';
 import { registerCardHandlers } from './ipc/cards';
+import { registerSourceHandlers } from './ipc/sources';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -53,6 +54,7 @@ app.whenReady().then(() => {
   registerAiHandlers(() => mainWindow);
   registerLookupHandlers();
   registerCardHandlers();
+  registerSourceHandlers();
 
   mainWindow = createWindow();
 
