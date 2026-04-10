@@ -17,3 +17,11 @@ export type {
   CardStats,
   CardWithBucket
 } from './types/card';
+
+export type {
+  IngestionSource,
+  IngestionSourceCreateInput,
+  IngestionSourceStatus,
+  IngestionSourceType,
+  IngestionSourceUpdateInput
+} from './types/ingestion-source';
