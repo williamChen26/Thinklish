@@ -45,5 +45,20 @@ export function createTables(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_lookups_mastery_status ON lookups(mastery_status);
     CREATE INDEX IF NOT EXISTS idx_cards_lookup_id ON cards(lookup_id);
     CREATE INDEX IF NOT EXISTS idx_cards_next_review_at ON cards(next_review_at);
+
+    CREATE TABLE IF NOT EXISTS ingestion_sources (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT NOT NULL UNIQUE,
+      label TEXT NOT NULL,
+      source_type TEXT NOT NULL CHECK (source_type IN ('feed', 'watch')),
+      status TEXT NOT NULL DEFAULT 'enabled' CHECK (status IN ('enabled', 'paused')),
+      english_only INTEGER NOT NULL DEFAULT 1 CHECK (english_only IN (0, 1)),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      last_success_at TEXT,
+      last_error TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ingestion_sources_status ON ingestion_sources(status);
   `);
 }

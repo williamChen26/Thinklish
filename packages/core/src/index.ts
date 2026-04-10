@@ -7,6 +7,15 @@ export {
   deleteArticle
 } from './articles/repository';
 export {
+  createSource,
+  deleteSource,
+  getAllSources,
+  getEnabledSources,
+  getSourceById,
+  setSourcePaused,
+  updateSource
+} from './sources/repository';
+export {
   createLookup,
   getAllLookups,
   getLookupById,
