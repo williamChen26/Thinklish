@@ -3,6 +3,8 @@ export type {
   ArticleCreateInput
 } from './types/article';
 
+export type { FeedRefreshResult } from './types/feed';
+
 export type {
   Lookup,
   LookupCreateInput,
