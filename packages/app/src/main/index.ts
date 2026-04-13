@@ -1,4 +1,5 @@
 import { app, BrowserWindow, shell } from 'electron';
+import { createAndRegisterFeedScheduler } from './services/feed-scheduler';
 import { autoUpdater } from 'electron-updater';
 import { join } from 'path';
 import { initDatabase, closeDatabase, createTables } from '@thinklish/core';
@@ -9,6 +10,21 @@ import { registerCardHandlers } from './ipc/cards';
 import { registerSourceHandlers } from './ipc/sources';
 
 let mainWindow: BrowserWindow | null = null;
+
+function attachFeedScheduler(win: BrowserWindow): void {
+  const sched = createAndRegisterFeedScheduler({
+    getWebContents: () => (win.isDestroyed() ? null : win.webContents)
+  });
+  win.webContents.once('did-finish-load', () => {
+    sched.start();
+  });
+  win.on('closed', () => {
+    sched.stop();
+    if (mainWindow === win) {
+      mainWindow = null;
+    }
+  });
+}
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -57,6 +73,7 @@ app.whenReady().then(() => {
   registerSourceHandlers();
 
   mainWindow = createWindow();
+  attachFeedScheduler(mainWindow);
 
   if (app.isPackaged) {
     autoUpdater.checkForUpdatesAndNotify();
@@ -65,6 +82,7 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow();
+      attachFeedScheduler(mainWindow);
     }
   });
 });

@@ -4,7 +4,9 @@ import {
   deleteSource,
   fetchFeed,
   getAllSources,
+  getGlobalRefreshPosture,
   getSourceById,
+  setGlobalRefreshPosture,
   setSourcePaused,
   updateSource
 } from '@thinklish/core';
@@ -12,8 +14,11 @@ import type {
   FeedRefreshResult,
   IngestionSource,
   IngestionSourceCreateInput,
-  IngestionSourceUpdateInput
+  IngestionSourceUpdateInput,
+  RefreshAllResult,
+  RefreshPosture
 } from '@thinklish/shared';
+import { getFeedScheduler } from '../services/feed-scheduler';
 
 type CreateSourceResult =
   | { success: true; source: IngestionSource }
@@ -50,12 +55,23 @@ function isCreateInput(value: unknown): value is IngestionSourceCreateInput {
   );
 }
 
+function isRefreshPostureValue(value: unknown): value is RefreshPosture {
+  return value === 'manual' || value === 'relaxed' || value === 'normal';
+}
+
 function isUpdateInput(value: unknown): value is IngestionSourceUpdateInput {
   if (!value || typeof value !== 'object') return false;
   const o = value as Record<string, unknown>;
   if (o['label'] !== undefined && typeof o['label'] !== 'string') return false;
   if (o['englishOnly'] !== undefined && typeof o['englishOnly'] !== 'boolean') return false;
-  return o['label'] !== undefined || o['englishOnly'] !== undefined;
+  if (o['refreshPosture'] !== undefined && o['refreshPosture'] !== null && !isRefreshPostureValue(o['refreshPosture'])) {
+    return false;
+  }
+  return o['label'] !== undefined || o['englishOnly'] !== undefined || o['refreshPosture'] !== undefined;
+}
+
+function notifySchedulerReschedule(): void {
+  getFeedScheduler()?.reschedule();
 }
 
 export function registerSourceHandlers(): void {
@@ -69,6 +85,7 @@ export function registerSourceHandlers(): void {
     }
     try {
       const source = createSource(input);
+      notifySchedulerReschedule();
       return { success: true, source };
     } catch (err) {
       return { success: false, error: errMessage(err) };
@@ -84,6 +101,7 @@ export function registerSourceHandlers(): void {
     }
     try {
       const source = updateSource(id, input);
+      notifySchedulerReschedule();
       return { success: true, source };
     } catch (err) {
       return { success: false, error: errMessage(err) };
@@ -99,6 +117,7 @@ export function registerSourceHandlers(): void {
     }
     try {
       const source = setSourcePaused(id, paused);
+      notifySchedulerReschedule();
       return { success: true, source };
     } catch (err) {
       return { success: false, error: errMessage(err) };
@@ -111,6 +130,7 @@ export function registerSourceHandlers(): void {
     }
     try {
       deleteSource(id);
+      notifySchedulerReschedule();
       return { success: true };
     } catch (err) {
       return { success: false, error: errMessage(err) };
@@ -126,5 +146,26 @@ export function registerSourceHandlers(): void {
       return { ok: false, inserted: 0, updated: 0, skipped: 0, error: 'Source not found' };
     }
     return fetchFeed(source);
+  });
+
+  ipcMain.handle('sources:getGlobalPosture', (): RefreshPosture => {
+    return getGlobalRefreshPosture();
+  });
+
+  ipcMain.handle('sources:setGlobalPosture', (_event, posture: unknown): { success: true } | { success: false; error: string } => {
+    if (!isRefreshPostureValue(posture)) {
+      return { success: false, error: 'Invalid refresh posture' };
+    }
+    setGlobalRefreshPosture(posture);
+    notifySchedulerReschedule();
+    return { success: true };
+  });
+
+  ipcMain.handle('sources:refreshAll', async (): Promise<RefreshAllResult> => {
+    const sched = getFeedScheduler();
+    if (!sched) {
+      return { successCount: 0, failCount: 0, errors: [] };
+    }
+    return sched.refreshAll();
   });
 }

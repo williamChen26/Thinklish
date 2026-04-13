@@ -10,7 +10,10 @@ import type {
   Lookup,
   LookupCreateInput,
   LookupType,
-  MasteryStatus
+  MasteryStatus,
+  RefreshAllResult,
+  RefreshPosture,
+  RefreshProgressEvent
 } from '@thinklish/shared';
 
 export type AddArticleResult =
@@ -117,7 +120,28 @@ export const sourcesAPI = {
     window.electron.invoke('sources:delete', id) as Promise<DeleteSourceResult>,
 
   refreshFeed: (id: number): Promise<FeedRefreshResult> =>
-    window.electron.invoke('sources:refreshFeed', id) as Promise<FeedRefreshResult>
+    window.electron.invoke('sources:refreshFeed', id) as Promise<FeedRefreshResult>,
+
+  getGlobalPosture: (): Promise<RefreshPosture> =>
+    window.electron.invoke('sources:getGlobalPosture') as Promise<RefreshPosture>,
+
+  setGlobalPosture: (
+    posture: RefreshPosture
+  ): Promise<{ success: true } | { success: false; error: string }> =>
+    window.electron.invoke('sources:setGlobalPosture', posture) as Promise<
+      { success: true } | { success: false; error: string }
+    >,
+
+  refreshAll: (): Promise<RefreshAllResult> =>
+    window.electron.invoke('sources:refreshAll') as Promise<RefreshAllResult>,
+
+  onRefreshProgress: (callback: (event: RefreshProgressEvent) => void): (() => void) =>
+    window.electron.on('sources:refreshProgress', (...args: unknown[]) => {
+      const first = args[0];
+      if (first && typeof first === 'object' && 'phase' in first) {
+        callback(first as RefreshProgressEvent);
+      }
+    })
 };
 
 export const cardsAPI = {

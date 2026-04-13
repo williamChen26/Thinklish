@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { IngestionSource, IngestionSourceType } from '@thinklish/shared';
+import type { IngestionSource, IngestionSourceType, RefreshPosture, RefreshProgressEvent } from '@thinklish/shared';
 import { sourcesAPI } from '../lib/api';
 import { formatRelativeTime, truncate } from '../lib/format';
 import { cn } from '../lib/utils';
@@ -27,6 +27,12 @@ function TypeBadge({ type }: { type: IngestionSourceType }): JSX.Element {
   );
 }
 
+const POSTURE_OPTIONS: { value: RefreshPosture; label: string; hint: string }[] = [
+  { value: 'manual', label: 'Manual', hint: 'No automatic refreshes' },
+  { value: 'relaxed', label: 'Relaxed', hint: 'About every 2 hours' },
+  { value: 'normal', label: 'Normal', hint: 'About every 30 minutes' }
+];
+
 function StatusBadge({ status }: { status: IngestionSource['status'] }): JSX.Element {
   return (
     <span
@@ -51,15 +57,26 @@ export function SourcesView(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [refreshingId, setRefreshingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [globalPosture, setGlobalPosture] = useState<RefreshPosture>('normal');
+  const [refreshingAll, setRefreshingAll] = useState(false);
+  const [refreshProgress, setRefreshProgress] = useState<RefreshProgressEvent | null>(null);
+  const [lastRefreshSummary, setLastRefreshSummary] = useState<string | null>(null);
 
   const loadSources = useCallback(async () => {
-    const data = await sourcesAPI.list();
+    const [data, posture] = await Promise.all([sourcesAPI.list(), sourcesAPI.getGlobalPosture()]);
     setSources(data);
+    setGlobalPosture(posture);
   }, []);
 
   useEffect(() => {
     loadSources();
   }, [loadSources]);
+
+  useEffect(() => {
+    return sourcesAPI.onRefreshProgress((ev) => {
+      setRefreshProgress(ev);
+    });
+  }, []);
 
   const onNewUrlChange = (value: string): void => {
     setNewUrl(value);
@@ -150,6 +167,45 @@ export function SourcesView(): JSX.Element {
     }
   };
 
+  const handleGlobalPostureChange = async (value: RefreshPosture): Promise<void> => {
+    setError(null);
+    const result = await sourcesAPI.setGlobalPosture(value);
+    if (result.success) {
+      setGlobalPosture(value);
+    } else {
+      setError(result.error);
+    }
+  };
+
+  const handleSourcePostureChange = async (s: IngestionSource, value: string): Promise<void> => {
+    setError(null);
+    const next = value === '' ? null : (value as RefreshPosture);
+    const result = await sourcesAPI.update(s.id, { refreshPosture: next });
+    if (result.success) {
+      await loadSources();
+      setError(null);
+    } else {
+      setError(result.error);
+    }
+  };
+
+  const handleRefreshAll = async (): Promise<void> => {
+    setError(null);
+    setLastRefreshSummary(null);
+    setRefreshProgress(null);
+    setRefreshingAll(true);
+    try {
+      const summary = await sourcesAPI.refreshAll();
+      setLastRefreshSummary(`${summary.successCount} succeeded, ${summary.failCount} failed`);
+      await loadSources();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Refresh all failed');
+    } finally {
+      setRefreshingAll(false);
+      setRefreshProgress(null);
+    }
+  };
+
   const handleDelete = async (s: IngestionSource): Promise<void> => {
     const ok = window.confirm(
       `Remove “${s.label}” from your sources?\n\nArticles already in your library stay put — this only removes the source entry.`
@@ -167,8 +223,63 @@ export function SourcesView(): JSX.Element {
   return (
     <div className="flex-1 overflow-auto">
       <div className="max-w-4xl mx-auto px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
           <h2 className="text-xl font-semibold">Sources</h2>
+          <div className="flex flex-col gap-2 sm:items-end min-w-[12rem]">
+            <label className="text-xs font-medium text-muted-foreground">Global refresh</label>
+            <select
+              value={globalPosture}
+              onChange={(e) => void handleGlobalPostureChange(e.target.value as RefreshPosture)}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              {POSTURE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label} — {o.hint}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => void handleRefreshAll()}
+              disabled={refreshingAll}
+              className="h-9 px-3 rounded-md border border-input text-sm font-medium hover:bg-muted disabled:opacity-50"
+            >
+              {refreshingAll ? 'Refreshing all…' : 'Refresh all feeds'}
+            </button>
+            {refreshProgress && refreshingAll ? (
+              <div className="w-full max-w-xs text-xs text-muted-foreground space-y-1">
+                {refreshProgress.phase === 'started' && refreshProgress.total !== undefined ? (
+                  <p>Starting… {refreshProgress.total} feeds</p>
+                ) : null}
+                {refreshProgress.phase === 'source' &&
+                refreshProgress.processed !== undefined &&
+                refreshProgress.total !== undefined ? (
+                  <div>
+                    <div className="flex justify-between mb-0.5">
+                      <span className="truncate" title={refreshProgress.sourceName}>
+                        {refreshProgress.sourceName ?? 'Feed'}
+                      </span>
+                      <span>
+                        {refreshProgress.processed}/{refreshProgress.total}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{
+                          width: `${Math.round((100 * refreshProgress.processed) / Math.max(refreshProgress.total, 1))}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                {refreshProgress.phase === 'completed' ? <p>{refreshProgress.message}</p> : null}
+              </div>
+            ) : null}
+            {lastRefreshSummary && !refreshingAll ? (
+              <p className="text-xs text-muted-foreground">{lastRefreshSummary}</p>
+            ) : null}
+          </div>
         </div>
 
         <div className="mb-8 rounded-lg border border-border bg-muted/20 p-4 space-y-4">
@@ -281,6 +392,8 @@ export function SourcesView(): JSX.Element {
                   <th className="px-3 py-2 font-medium">Label</th>
                   <th className="px-3 py-2 font-medium">URL</th>
                   <th className="px-3 py-2 font-medium">Status</th>
+                  <th className="px-3 py-2 font-medium whitespace-nowrap">Refresh</th>
+                  <th className="px-3 py-2 font-medium whitespace-nowrap">Backoff</th>
                   <th className="px-3 py-2 font-medium whitespace-nowrap">Created</th>
                   <th className="px-3 py-2 font-medium whitespace-nowrap">Last OK</th>
                   <th className="px-3 py-2 font-medium text-right">Actions</th>
@@ -320,6 +433,38 @@ export function SourcesView(): JSX.Element {
                     </td>
                     <td className="px-3 py-2 align-top">
                       <StatusBadge status={s.status} />
+                    </td>
+                    <td className="px-3 py-2 align-top">
+                      {s.sourceType === 'feed' ? (
+                        <select
+                          value={s.refreshPosture ?? ''}
+                          onChange={(e) => void handleSourcePostureChange(s, e.target.value)}
+                          disabled={loading}
+                          className="max-w-[9rem] h-8 rounded border border-input bg-background px-1 text-xs"
+                          title="Override global refresh cadence for this feed"
+                        >
+                          <option value="">Default</option>
+                          {POSTURE_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 align-top text-xs text-muted-foreground whitespace-nowrap">
+                      {s.sourceType === 'feed' && s.consecutiveFailures > 0 ? (
+                        <span title={s.lastError ?? ''}>
+                          {s.consecutiveFailures} fail{s.consecutiveFailures > 1 ? 's' : ''}
+                          {s.lastAttemptAt ? (
+                            <span className="block text-[10px] max-w-[7rem] truncate">Last try {formatRelativeTime(s.lastAttemptAt)}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="px-3 py-2 align-top text-muted-foreground whitespace-nowrap text-xs">
                       {formatRelativeTime(s.createdAt)}
