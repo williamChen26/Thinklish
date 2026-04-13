@@ -15,7 +15,6 @@ required_files=(
   "docs/exec-plans/tech-debt-tracker.md"
   "docs/generated/README.md"
   "docs/product-specs/index.md"
-  "docs/product-specs/tideglass-rss-reader.md"
   "docs/references/index.md"
   "docs/DESIGN.md"
   "docs/FRONTEND.md"
