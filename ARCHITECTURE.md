@@ -89,6 +89,10 @@ shared ← app/renderer
 | `cards:getDue` | renderer → main | 获取待复习卡片 |
 | `cards:review` | renderer → main | 提交复习结果 |
 | `cards:exportTsv` | renderer → main | 导出 TSV 文件 |
+| `sources:getGlobalPosture` | renderer → main | 全局 RSS 刷新节奏 |
+| `sources:setGlobalPosture` | renderer → main | 设置全局刷新节奏并重启调度 |
+| `sources:refreshAll` | renderer → main | 手动刷新全部订阅源 |
+| `sources:refreshProgress` | main → renderer | 批量刷新进度（push） |
 
 ## 数据模型
 
