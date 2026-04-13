@@ -27,3 +27,10 @@ export type {
   IngestionSourceType,
   IngestionSourceUpdateInput
 } from './types/ingestion-source';
+
+export type {
+  RefreshAllResult,
+  RefreshPosture,
+  RefreshProgressEvent,
+  RefreshProgressPhase
+} from './types/refresh-schedule';
