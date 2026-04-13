@@ -19,6 +19,10 @@ export function getEffectivePosture(source: FeedSchedulerSourceState, globalPost
   return source.refreshPosture ?? globalPosture;
 }
 
+export function getEffectiveInterval(source: FeedSchedulerSourceState, globalPosture: RefreshPosture): number {
+  return getEffectiveIntervalMs(getEffectivePosture(source, globalPosture));
+}
+
 export function getEffectiveIntervalMs(posture: RefreshPosture): number {
   switch (posture) {
     case 'manual':

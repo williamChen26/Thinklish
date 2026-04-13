@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { RefreshPosture } from '@thinklish/shared';
 import {
   getBackoffMultiplier,
+  getEffectiveInterval,
   getEffectiveIntervalMs,
   getEffectivePosture,
   getNextDueTime,
@@ -37,6 +38,12 @@ describe('feed-scheduler-logic', () => {
       expect(getEffectiveIntervalMs('manual')).toBe(Number.POSITIVE_INFINITY);
       expect(getEffectiveIntervalMs('relaxed')).toBe(7_200_000);
       expect(getEffectiveIntervalMs('normal')).toBe(1_800_000);
+    });
+  });
+
+  describe('getEffectiveInterval', () => {
+    it('respects per-source override', () => {
+      expect(getEffectiveInterval(src({ id: 1, refreshPosture: 'relaxed' }), 'normal')).toBe(7_200_000);
     });
   });
 

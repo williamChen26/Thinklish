@@ -23,6 +23,7 @@ export { fetchFeed, ingestFeedXml } from './ingestion/feed-fetcher';
 export {
   computeSchedulerDelayMs,
   getBackoffMultiplier,
+  getEffectiveInterval,
   getEffectiveIntervalMs,
   getEffectivePosture,
   getNextDueTime,
