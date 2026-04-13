@@ -37,7 +37,7 @@ describe('ingestion sources repository', () => {
     openFreshDb();
   });
 
-  it('creates feed and watch sources with required fields and persists type', () => {
+  it('creates feed sources with required fields and persists type', () => {
     const feed = createSource({
       url: 'https://example.com/feed.xml',
       label: 'My feed',
@@ -50,13 +50,13 @@ describe('ingestion sources repository', () => {
     expect(feed.consecutiveFailures).toBe(0);
     expect(feed.lastAttemptAt).toBeNull();
 
-    const watch = createSource({
-      url: 'https://news.example.com/latest',
-      label: 'Listing',
-      sourceType: 'watch'
+    const second = createSource({
+      url: 'https://news.example.com/feed.xml',
+      label: 'Other feed',
+      sourceType: 'feed'
     });
-    expect(watch.sourceType).toBe('watch');
-    expect(watch.url).toBe('https://news.example.com/latest');
+    expect(second.sourceType).toBe('feed');
+    expect(second.url).toBe('https://news.example.com/feed.xml');
   });
 
   it('defaults englishOnly to true when omitted', () => {
@@ -154,7 +154,7 @@ describe('ingestion sources repository', () => {
       createSource({
         url: 'https://example.com/g.xml',
         label: 'Other',
-        sourceType: 'watch'
+        sourceType: 'feed'
       })
     ).toThrow(/already exists/);
   });

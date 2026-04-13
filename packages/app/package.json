@@ -21,6 +21,7 @@
     "dist:win": "electron-builder --win"
   },
   "dependencies": {
+    "@thinklish/shared": "workspace:*",
     "@agentclientprotocol/claude-agent-acp": "^0.25.3",
     "@agentclientprotocol/sdk": "^0.18.1",
     "@zed-industries/codex-acp": "^0.11.1",
@@ -31,7 +32,6 @@
     "@mozilla/readability": "^0.6.0",
     "@swc/core": "^1.15.24",
     "@thinklish/core": "workspace:*",
-    "@thinklish/shared": "workspace:*",
     "@types/better-sqlite3": "^7.6.0",
     "@types/jsdom": "^28.0.1",
     "@types/react": "^18.3.0",

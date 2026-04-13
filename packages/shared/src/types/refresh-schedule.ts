@@ -14,5 +14,6 @@ export interface RefreshProgressEvent {
 export interface RefreshAllResult {
   successCount: number;
   failCount: number;
+  skippedCount: number;
   errors: Array<{ sourceId: number; error: string }>;
 }

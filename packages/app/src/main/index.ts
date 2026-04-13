@@ -8,6 +8,8 @@ import { registerAiHandlers } from './ipc/ai';
 import { registerLookupHandlers } from './ipc/lookups';
 import { registerCardHandlers } from './ipc/cards';
 import { registerSourceHandlers } from './ipc/sources';
+import { registerStorageHandlers } from './ipc/storage';
+import { registerFeedHandlers } from './ipc/feeds';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -71,6 +73,8 @@ app.whenReady().then(() => {
   registerLookupHandlers();
   registerCardHandlers();
   registerSourceHandlers();
+  registerStorageHandlers();
+  registerFeedHandlers();
 
   mainWindow = createWindow();
   attachFeedScheduler(mainWindow);

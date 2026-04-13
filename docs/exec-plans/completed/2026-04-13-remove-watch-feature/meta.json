@@ -1,0 +1,15 @@
+{
+  "id": "2026-04-13-remove-watch-feature",
+  "status": "completed",
+  "task": "移除 Watch listing page 功能（非 RSS 网站监听），包括 synthetic feed、candidate 审核系统、watch-related UI 和数据库结构。降低代码复杂度和理解成本。",
+  "created_at": "2026-04-13T12:30:00Z",
+  "updated_at": "2026-04-13T15:15:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "Remove watch backend — types, core logic, data stores", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "Remove watch frontend — IPC, scheduler, UI", "status": "completed", "priority": "P0" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_ids": ["F1", "F2"], "rounds": 1, "verdict": "passed", "started": "2026-04-13T12:35:00Z", "completed": "2026-04-13T15:15:00Z" }
+  ]
+}

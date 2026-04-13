@@ -9,7 +9,7 @@ import {
   isSourceDue,
   pickNextSource,
   type FeedSchedulerSourceState
-} from './feed-scheduler-logic';
+} from '@thinklish/shared';
 
 function src(partial: Partial<FeedSchedulerSourceState> & Pick<FeedSchedulerSourceState, 'id'>): FeedSchedulerSourceState {
   return {
@@ -87,10 +87,10 @@ describe('feed-scheduler-logic', () => {
   });
 
   describe('isSourceDue', () => {
-    it('is false for paused or watch', () => {
+    it('is false for paused; is true for enabled feed when never attempted', () => {
       const now = 1_000_000;
       expect(isSourceDue(src({ id: 1, status: 'paused', lastAttemptAt: null }), 'normal', now)).toBe(false);
-      expect(isSourceDue(src({ id: 1, sourceType: 'watch', lastAttemptAt: null }), 'normal', now)).toBe(false);
+      expect(isSourceDue(src({ id: 1, lastAttemptAt: null }), 'normal', now)).toBe(true);
     });
 
     it('is false when global and effective posture is manual', () => {

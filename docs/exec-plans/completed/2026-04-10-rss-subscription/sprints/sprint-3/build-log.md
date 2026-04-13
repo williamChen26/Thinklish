@@ -34,6 +34,25 @@ Implemented global and per-source refresh posture, SQLite-backed settings, expon
 - `pnpm --filter @thinklish/core test` — pass (35 tests).
 - `./scripts/check_repo_docs.sh` — failed in this workspace due to pre-existing missing `docs/product-specs/tideglass-rss-reader.md` (not introduced by this sprint).
 
+## Round 2 (2026-04-13) — F3-AC5 skipped aggregate
+
+Evaluator Round 2 feedback: refresh-all completion must surface **ok / fail / skipped** (aggregate `skipped` from each `fetchFeed`).
+
+### Changes
+
+- `RefreshAllResult.skippedCount` in `@thinklish/shared`.
+- `FeedScheduler.refreshAll`: `skippedCount += result.skipped` per feed; IPC `completed` message and returned summary include skipped.
+- `SourcesView` completion line shows all three counts.
+- Core test `refresh-all-skipped.test.ts` guards skipped aggregation across mixed success/failure results.
+- IPC `sources:refreshAll` early return when scheduler is absent includes `skippedCount: 0`.
+
+### Verification
+
+- `pnpm typecheck` — pass.
+- `pnpm --filter @thinklish/core test` — pass (38 tests).
+
+Details: `sprints/sprint-3/iterations/round-2/changes.md`.
+
 ## Commits
 
 Three commits: shared → core → app (including this build log).

@@ -1,6 +1,6 @@
 import type { RefreshPosture } from './refresh-schedule';
 
-export type IngestionSourceType = 'feed' | 'watch';
+export type IngestionSourceType = 'feed';
 
 export type IngestionSourceStatus = 'enabled' | 'paused';
 

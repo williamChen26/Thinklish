@@ -1,10 +1,10 @@
-import type { RefreshPosture } from '@thinklish/shared';
+import type { RefreshPosture } from './types/refresh-schedule';
 
 /** Subset of source fields needed for scheduling decisions (pure logic). */
 export interface FeedSchedulerSourceState {
   id: number;
   status: 'enabled' | 'paused';
-  sourceType: 'feed' | 'watch';
+  sourceType: 'feed';
   refreshPosture: RefreshPosture | null;
   consecutiveFailures: number;
   lastAttemptAt: string | null;
@@ -55,10 +55,8 @@ function parseAttemptMs(lastAttemptAt: string | null): number | null {
 }
 
 /**
- * Earliest time (epoch ms) the source may be fetched again under scheduling rules.
- * `0` means eligible immediately (no prior attempt).
+ * Next eligible fetch time as epoch milliseconds (`0` = immediately, `Infinity` = never under auto schedule).
  */
-/** Next eligible fetch time as epoch milliseconds (`0` = immediately, `Infinity` = never under auto schedule). */
 export function getNextDueTime(source: FeedSchedulerSourceState, globalPosture: RefreshPosture): number {
   const posture = getEffectivePosture(source, globalPosture);
   const interval = getEffectiveIntervalMs(posture);
@@ -74,7 +72,10 @@ export function getNextDueTime(source: FeedSchedulerSourceState, globalPosture: 
 }
 
 export function isSourceDue(source: FeedSchedulerSourceState, globalPosture: RefreshPosture, nowMs: number): boolean {
-  if (source.status !== 'enabled' || source.sourceType !== 'feed') {
+  if (source.status !== 'enabled') {
+    return false;
+  }
+  if (source.sourceType !== 'feed') {
     return false;
   }
   const next = getNextDueTime(source, globalPosture);

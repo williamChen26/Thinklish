@@ -47,13 +47,25 @@ function migrateArticlesFeedColumns(db: Database.Database): void {
   }
 }
 
+/** Remove watch listing ingestion artifacts from legacy databases. */
+function migrateRemoveWatchAndCandidates(db: Database.Database): void {
+  db.exec(`DELETE FROM ingestion_sources WHERE source_type = 'watch';`);
+  if (tableHasColumn(db, 'articles', 'ingestion_candidate_status')) {
+    db.exec(`DELETE FROM articles WHERE ingestion_candidate_status = 'candidate';`);
+  }
+  db.exec(`
+    DROP TABLE IF EXISTS watch_seen_urls;
+    DROP TABLE IF EXISTS watch_dismissed_urls;
+  `);
+}
+
 export function createTables(db: Database.Database): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS ingestion_sources (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT NOT NULL UNIQUE,
       label TEXT NOT NULL,
-      source_type TEXT NOT NULL CHECK (source_type IN ('feed', 'watch')),
+      source_type TEXT NOT NULL CHECK (source_type IN ('feed')),
       status TEXT NOT NULL DEFAULT 'enabled' CHECK (status IN ('enabled', 'paused')),
       english_only INTEGER NOT NULL DEFAULT 1 CHECK (english_only IN (0, 1)),
       refresh_posture TEXT CHECK (
@@ -115,7 +127,6 @@ export function createTables(db: Database.Database): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_ingestion_sources_status ON ingestion_sources(status);
-    CREATE INDEX IF NOT EXISTS idx_articles_feed_item_id ON articles(feed_item_id);
     CREATE INDEX IF NOT EXISTS idx_lookups_article_id ON lookups(article_id);
     CREATE INDEX IF NOT EXISTS idx_lookups_mastery_status ON lookups(mastery_status);
     CREATE INDEX IF NOT EXISTS idx_cards_lookup_id ON cards(lookup_id);
@@ -124,6 +135,7 @@ export function createTables(db: Database.Database): void {
 
   migrateArticlesFeedColumns(db);
   migrateIngestionSourcesRefreshColumns(db);
+  migrateRemoveWatchAndCandidates(db);
   migrateAppSettings(db);
 
   db.exec(`CREATE INDEX IF NOT EXISTS idx_articles_feed_item_id ON articles(feed_item_id);`);

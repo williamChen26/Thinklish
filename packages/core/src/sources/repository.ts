@@ -36,7 +36,7 @@ function assertValidUrl(url: string): void {
 }
 
 function assertSourceType(value: string): asserts value is IngestionSourceType {
-  if (value !== 'feed' && value !== 'watch') {
+  if (value !== 'feed') {
     throw new Error(`Invalid source type: ${value}`);
   }
 }

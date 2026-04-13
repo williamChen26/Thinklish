@@ -20,6 +20,7 @@ export {
   updateSource
 } from './sources/repository';
 export { fetchFeed, ingestFeedXml } from './ingestion/feed-fetcher';
+export { discoverFeeds, extractAlternateFeedsFromHtml } from './ingestion/feed-discovery';
 export {
   computeSchedulerDelayMs,
   getBackoffMultiplier,
@@ -30,8 +31,17 @@ export {
   isSourceDue,
   pickNextSource,
   type FeedSchedulerSourceState
-} from './ingestion/feed-scheduler-logic';
+} from '@thinklish/shared';
 export { getGlobalRefreshPosture, getSetting, setGlobalRefreshPosture, setSetting } from './settings/repository';
+export {
+  deleteArticlesBySource,
+  getRetentionCleanupPreview,
+  getRetentionPolicy,
+  getSourceArticlesDeleteImpact,
+  getStorageStats,
+  runRetentionCleanup,
+  setRetentionPolicy
+} from './storage/retention';
 export {
   createLookup,
   getAllLookups,

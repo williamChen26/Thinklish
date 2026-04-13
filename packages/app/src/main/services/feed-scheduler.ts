@@ -20,7 +20,7 @@ function toSchedulerState(s: IngestionSource): FeedSchedulerSourceState {
   };
 }
 
-function enabledFeedStates(): FeedSchedulerSourceState[] {
+function enabledScheduledSourceStates(): FeedSchedulerSourceState[] {
   return getEnabledSources()
     .filter((s) => s.sourceType === 'feed')
     .map(toSchedulerState);
@@ -83,7 +83,7 @@ export class FeedScheduler {
     }
 
     const posture = getGlobalRefreshPosture();
-    const states = enabledFeedStates();
+    const states = enabledScheduledSourceStates();
     const now = Date.now();
     const delay = computeSchedulerDelayMs(states, posture, now);
 
@@ -127,44 +127,46 @@ export class FeedScheduler {
   }
 
   async refreshAll(): Promise<RefreshAllResult> {
-    const feeds = getEnabledSources()
+    const sources = getEnabledSources()
       .filter((s) => s.sourceType === 'feed' && s.status === 'enabled')
       .sort((a, b) => a.id - b.id);
 
-    this.sendProgress({ phase: 'started', total: feeds.length, processed: 0 });
+    this.sendProgress({ phase: 'started', total: sources.length, processed: 0 });
 
     const errors: Array<{ sourceId: number; error: string }> = [];
     let successCount = 0;
     let failCount = 0;
+    let skippedCount = 0;
 
-    for (let i = 0; i < feeds.length; i++) {
-      const s = feeds[i]!;
+    for (let i = 0; i < sources.length; i++) {
+      const s = sources[i]!;
       const processed = i + 1;
       this.sendProgress({
         phase: 'source',
         sourceId: s.id,
         sourceName: s.label,
         processed,
-        total: feeds.length
+        total: sources.length
       });
       const result = await fetchFeed(s);
+      skippedCount += result.skipped;
       if (result.ok) {
         successCount++;
       } else {
         failCount++;
         errors.push({ sourceId: s.id, error: result.error ?? 'Unknown error' });
       }
-      if (i < feeds.length - 1) {
+      if (i < sources.length - 1) {
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
       }
     }
 
-    const summary: RefreshAllResult = { successCount, failCount, errors };
+    const summary: RefreshAllResult = { successCount, failCount, skippedCount, errors };
     this.sendProgress({
       phase: 'completed',
-      processed: feeds.length,
-      total: feeds.length,
-      message: `Done: ${successCount} ok, ${failCount} failed`
+      processed: sources.length,
+      total: sources.length,
+      message: `Done: ${successCount} ok, ${failCount} failed, ${skippedCount} skipped`
     });
     return summary;
   }

@@ -1,3 +1,5 @@
+import type { IngestionSourceType } from './ingestion-source';
+
 export interface Article {
   id: number;
   url: string;
@@ -10,6 +12,8 @@ export interface Article {
   updatedAt: string;
   /** Ingestion source when the article came from a feed (null for pasted/manual). */
   sourceId: number | null;
+  /** Joined source kind for list UI (null if no source). */
+  sourceType: IngestionSourceType | null;
   /** Stable id within a feed (guid or normalized link). */
   feedItemId: string | null;
   /** True until full Readability extraction has replaced stub summary content. */

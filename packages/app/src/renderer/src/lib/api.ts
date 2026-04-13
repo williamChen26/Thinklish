@@ -3,6 +3,7 @@ import type {
   ArticleCreateInput,
   CardStats,
   CardWithBucket,
+  DiscoveredFeed,
   FeedRefreshResult,
   IngestionSource,
   IngestionSourceCreateInput,
@@ -13,7 +14,12 @@ import type {
   MasteryStatus,
   RefreshAllResult,
   RefreshPosture,
-  RefreshProgressEvent
+  RefreshProgressEvent,
+  RetentionCleanupPreview,
+  RetentionCleanupResult,
+  RetentionPolicy,
+  SourceArticlesDeleteImpact,
+  StorageStats
 } from '@thinklish/shared';
 
 export type AddArticleResult =
@@ -38,6 +44,13 @@ export interface AiStreamChunkEvent {
   fullText?: string;
   error?: string;
 }
+
+export type FeedDiscoverResponse = { feeds: DiscoveredFeed[] };
+
+export const feedsAPI = {
+  discover: (url: string): Promise<FeedDiscoverResponse> =>
+    window.electron.invoke('feeds:discover', url) as Promise<FeedDiscoverResponse>
+};
 
 export const articlesAPI = {
   add: (url: string): Promise<AddArticleResult> =>
@@ -141,7 +154,52 @@ export const sourcesAPI = {
       if (first && typeof first === 'object' && 'phase' in first) {
         callback(first as RefreshProgressEvent);
       }
-    })
+    }),
+
+  deleteWithArticlesPreview: (
+    id: number
+  ): Promise<{ success: true; impact: SourceArticlesDeleteImpact } | { success: false; error: string }> =>
+    window.electron.invoke('sources:deleteWithArticlesPreview', id) as Promise<
+      { success: true; impact: SourceArticlesDeleteImpact } | { success: false; error: string }
+    >,
+
+  deleteWithArticles: (
+    id: number
+  ): Promise<{ success: true; deletedCount: number } | { success: false; error: string }> =>
+    window.electron.invoke('sources:deleteWithArticles', id) as Promise<
+      { success: true; deletedCount: number } | { success: false; error: string }
+    >
+};
+
+export const storageAPI = {
+  getStats: (): Promise<StorageStats> => window.electron.invoke('storage:getStats') as Promise<StorageStats>,
+
+  getRetentionPolicy: (): Promise<RetentionPolicy> =>
+    window.electron.invoke('storage:getRetentionPolicy') as Promise<RetentionPolicy>,
+
+  setRetentionPolicy: (
+    policy: RetentionPolicy
+  ): Promise<{ success: true; policy: RetentionPolicy } | { success: false; error: string }> =>
+    window.electron.invoke('storage:setRetentionPolicy', policy) as Promise<
+      { success: true; policy: RetentionPolicy } | { success: false; error: string }
+    >,
+
+  getCleanupPreview: (
+    policy?: RetentionPolicy
+  ): Promise<
+    | { success: true; preview: RetentionCleanupPreview }
+    | { success: false; error: string }
+  > => window.electron.invoke('storage:getCleanupPreview', policy) as Promise<
+    { success: true; preview: RetentionCleanupPreview } | { success: false; error: string }
+  >,
+
+  runCleanup: (
+    policy?: RetentionPolicy
+  ): Promise<
+    { success: true; result: RetentionCleanupResult } | { success: false; error: string }
+  > => window.electron.invoke('storage:runCleanup', policy) as Promise<
+    { success: true; result: RetentionCleanupResult } | { success: false; error: string }
+  >
 };
 
 export const cardsAPI = {

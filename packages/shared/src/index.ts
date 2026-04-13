@@ -34,3 +34,29 @@ export type {
   RefreshProgressEvent,
   RefreshProgressPhase
 } from './types/refresh-schedule';
+
+export type {
+  RetentionCleanupPreview,
+  RetentionCleanupResult,
+  RetentionPolicy,
+  SourceArticlesDeleteImpact,
+  StorageStats
+} from './types/storage';
+
+export type { DiscoveredFeed } from './types/discovered-feed';
+
+export {
+  computeSchedulerDelayMs,
+  getBackoffMultiplier,
+  getEffectiveInterval,
+  getEffectiveIntervalMs,
+  getEffectivePosture,
+  getNextDueTime,
+  isSourceDue,
+  pickNextSource
+} from './feed-scheduler-logic';
+
+export type { FeedSchedulerSourceState } from './feed-scheduler-logic';
+
+export { remediateIngestionError } from './source-error-remediation';
+export type { IngestionErrorRemediation } from './source-error-remediation';

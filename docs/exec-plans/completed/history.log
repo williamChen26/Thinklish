@@ -7,3 +7,7 @@ SF-2026-04-09-1 | standalone fix | Generate Card 成功时无 UI 反馈 | 2026-0
 2026-04-09-card-insight-dashboard | 5 features | 5 sprints | 5 rounds | 2026-04-09
 SF-2026-04-09-2 | standalone fix | Review 卡片内容过长时无法滚动 | 2026-04-09
 SF-2026-04-10-1 | standalone fix | 打包后 ACP 适配器无法找到 Claude Code / Codex | 2026-04-10
+2026-04-10-rss-subscription | 7 features | 7 sprints | 8 rounds | 2026-04-13 | +1 hotfixes (HF1: idx on unmigrated column crashes old DB)
+2026-04-13-remove-watch-feature | 2 features | 1 sprints | 1 rounds | 2026-04-13
+SF-2026-04-13-1 | standalone fix | 侧边菜单 Articles/Sources 导航项重复 | 2026-04-13
+SF-2026-04-13-2 | standalone fix | App 标题被 macOS 窗口控制按钮遮挡 | 2026-04-13

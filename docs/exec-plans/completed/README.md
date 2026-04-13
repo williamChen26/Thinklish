@@ -16,4 +16,6 @@
 | `2026-04-06-ai-skill-streaming` | Integrate english-intuition skill + streaming markdown | 2 | 2 | 2026-04-06 |
 | `2026-04-06-fix-streaming` | Fix AI output streaming via stream-json + race condition | 1 | 1 | 2026-04-06 |
 | `2026-04-08-ai-provider-settings` | Cursor ACP + AI 工具设置 + 浮窗增强 | 4 | 4 | 2026-04-08 | +2 hotfixes |
+| `2026-04-10-rss-subscription` | RSS 订阅 + 虚拟 Feed + Feed 发现 | 7 | 7 | 2026-04-13 | +1 hotfix |
+| `2026-04-13-remove-watch-feature` | 移除 Watch listing page 功能 | 2 | 1 | 2026-04-13 |
 

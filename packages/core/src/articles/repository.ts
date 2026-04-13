@@ -1,6 +1,6 @@
 import { getDatabase } from '../database/connection';
 import { normalizeArticleUrl } from '../ingestion/url-normalize';
-import type { Article, ArticleCreateInput } from '@thinklish/shared';
+import type { Article, ArticleCreateInput, IngestionSourceType } from '@thinklish/shared';
 
 interface ArticleRow {
   id: number;
@@ -16,6 +16,14 @@ interface ArticleRow {
   feed_item_id: string | null;
   is_stub: number;
   source_label: string | null;
+  source_type: string | null;
+}
+
+function mapSourceType(value: string | null | undefined): IngestionSourceType | null {
+  if (value === 'feed') {
+    return 'feed';
+  }
+  return null;
 }
 
 function mapRowToArticle(row: ArticleRow): Article {
@@ -30,6 +38,7 @@ function mapRowToArticle(row: ArticleRow): Article {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     sourceId: row.source_id ?? null,
+    sourceType: mapSourceType(row.source_type),
     feedItemId: row.feed_item_id ?? null,
     isStub: (row.is_stub ?? 0) === 1,
     sourceLabel: row.source_label ?? null
@@ -37,7 +46,7 @@ function mapRowToArticle(row: ArticleRow): Article {
 }
 
 const articleSelectJoin = `
-  SELECT a.*, s.label AS source_label
+  SELECT a.*, s.label AS source_label, s.source_type AS source_type
   FROM articles a
   LEFT JOIN ingestion_sources s ON a.source_id = s.id
 `;

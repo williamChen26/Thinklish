@@ -70,3 +70,43 @@ Non-harness bug fixes. Each entry is a self-contained fix record.
 
 ### 经验教训
 Electron asar 打包场景下，需要被 `child_process.spawn` 执行的文件分两类处理：(1) 原生二进制必须 `asarUnpack`，因为 OS 不认识 asar；(2) JS 文件应保留 asar 路径 + 用 `ELECTRON_RUN_AS_NODE` spawn，这样子进程天然继承 asar 读取能力，无需枚举全部传递依赖。`fixAsarPath` 只应用于 `kind: 'native'`。
+
+---
+
+## SF-2026-04-13-1: 侧边菜单 Articles/Sources 导航项重复
+
+- **日期**: 2026-04-13
+- **影响模块**: Sidebar (renderer)
+- **文件**: `packages/app/src/renderer/src/components/Sidebar.tsx`
+
+### 现象
+侧边菜单中 "Articles" 和 "Sources" 各出现两次——一次在顶部 "Add reading" 区域的快捷按钮中，一次在下方主导航列表中。
+
+### 根因
+`NAV_ITEMS` 数组包含了 `articles` 和 `sources` 两项，但这两个导航入口已在上方 "Add reading" 区域以独立按钮形式实现（调用相同的 `onNavChange`），导致同一功能入口渲染了两份。
+
+### 修复
+从 `NAV_ITEMS` 数组中移除 `articles` 和 `sources`，仅保留 `log`、`cardOverview`、`review`。
+
+### 经验教训
+新增快捷入口区域时，应同步检查是否与已有导航列表存在重叠，避免同一功能出现多个相同入口。
+
+---
+
+## SF-2026-04-13-2: App 标题被 macOS 窗口控制按钮遮挡
+
+- **日期**: 2026-04-13
+- **影响模块**: Sidebar (renderer)
+- **文件**: `packages/app/src/renderer/src/components/Sidebar.tsx`
+
+### 现象
+macOS 上应用左上角的 "Thinklish" 标题被系统交通灯按钮（关闭、最小化、最大化）遮住，标题不可见。
+
+### 根因
+标题区域使用 `px-4`（16px 左内边距），不足以避开 macOS 窗口控制按钮所占的约 70px 空间。
+
+### 修复
+将标题区域的 `px-4` 改为 `pl-20 pr-4`，左内边距增至 80px，确保标题完全显示在交通灯按钮右侧。
+
+### 经验教训
+Electron 自定义标题栏在 macOS 上必须为系统交通灯按钮预留至少 70-80px 的左侧空间。设置 `titleBarStyle: 'hiddenInset'` 时，侧边栏顶部区域是最容易被遮挡的位置。

@@ -1,10 +1,12 @@
 import { ipcMain } from 'electron';
 import {
   createSource,
+  deleteArticlesBySource,
   deleteSource,
   fetchFeed,
   getAllSources,
   getGlobalRefreshPosture,
+  getSourceArticlesDeleteImpact,
   getSourceById,
   setGlobalRefreshPosture,
   setSourcePaused,
@@ -16,7 +18,8 @@ import type {
   IngestionSourceCreateInput,
   IngestionSourceUpdateInput,
   RefreshAllResult,
-  RefreshPosture
+  RefreshPosture,
+  SourceArticlesDeleteImpact
 } from '@thinklish/shared';
 import { getFeedScheduler } from '../services/feed-scheduler';
 
@@ -51,7 +54,7 @@ function isCreateInput(value: unknown): value is IngestionSourceCreateInput {
   return (
     typeof o['url'] === 'string' &&
     typeof o['label'] === 'string' &&
-    (o['sourceType'] === 'feed' || o['sourceType'] === 'watch')
+    o['sourceType'] === 'feed'
   );
 }
 
@@ -164,8 +167,34 @@ export function registerSourceHandlers(): void {
   ipcMain.handle('sources:refreshAll', async (): Promise<RefreshAllResult> => {
     const sched = getFeedScheduler();
     if (!sched) {
-      return { successCount: 0, failCount: 0, errors: [] };
+      return { successCount: 0, failCount: 0, skippedCount: 0, errors: [] };
     }
     return sched.refreshAll();
   });
+
+  ipcMain.handle(
+    'sources:deleteWithArticlesPreview',
+    (_event, id: unknown): { success: true; impact: SourceArticlesDeleteImpact } | { success: false; error: string } => {
+      if (!isPositiveIntegerId(id)) {
+        return { success: false, error: 'Invalid source id' };
+      }
+      const impact = getSourceArticlesDeleteImpact(id);
+      return { success: true, impact };
+    }
+  );
+
+  ipcMain.handle(
+    'sources:deleteWithArticles',
+    (_event, id: unknown): { success: true; deletedCount: number } | { success: false; error: string } => {
+      if (!isPositiveIntegerId(id)) {
+        return { success: false, error: 'Invalid source id' };
+      }
+      try {
+        const { deletedCount } = deleteArticlesBySource(id);
+        return { success: true, deletedCount };
+      } catch (err) {
+        return { success: false, error: errMessage(err) };
+      }
+    }
+  );
 }

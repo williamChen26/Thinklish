@@ -32,6 +32,9 @@ importers:
       '@agentclientprotocol/sdk':
         specifier: ^0.18.1
         version: 0.18.1(zod@4.3.6)
+      '@thinklish/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@zed-industries/codex-acp':
         specifier: ^0.11.1
         version: 0.11.1
@@ -51,9 +54,6 @@ importers:
       '@thinklish/core':
         specifier: workspace:*
         version: link:../core
-      '@thinklish/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@types/better-sqlite3':
         specifier: ^7.6.0
         version: 7.6.13
@@ -123,6 +123,9 @@ importers:
       better-sqlite3:
         specifier: ^12.8.0
         version: 12.8.0
+      jsdom:
+        specifier: ^29.0.1
+        version: 29.0.1
       rss-parser:
         specifier: 3.13.0
         version: 3.13.0
@@ -130,6 +133,9 @@ importers:
       '@types/better-sqlite3':
         specifier: ^7.6.0
         version: 7.6.13
+      '@types/jsdom':
+        specifier: ^28.0.1
+        version: 28.0.1
       electron:
         specifier: ^40.8.5
         version: 40.8.5

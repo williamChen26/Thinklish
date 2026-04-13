@@ -36,7 +36,10 @@ function App(): JSX.Element {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {activeNav === 'articles' && !selectedArticleId && (
-          <ArticlesView onSelectArticle={setSelectedArticleId} />
+          <ArticlesView
+            onSelectArticle={setSelectedArticleId}
+            onOpenSources={() => setActiveNav('sources')}
+          />
         )}
 
         {activeNav === 'articles' && selectedArticleId && (
@@ -46,7 +49,9 @@ function App(): JSX.Element {
           />
         )}
 
-        {activeNav === 'sources' && <SourcesView />}
+        {activeNav === 'sources' && (
+          <SourcesView />
+        )}
 
         {activeNav === 'log' && <LearningLogView />}
 
