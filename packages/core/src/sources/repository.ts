@@ -3,7 +3,8 @@ import type {
   IngestionSource,
   IngestionSourceCreateInput,
   IngestionSourceType,
-  IngestionSourceUpdateInput
+  IngestionSourceUpdateInput,
+  RefreshPosture
 } from '@thinklish/shared';
 
 interface IngestionSourceRow {
@@ -13,6 +14,9 @@ interface IngestionSourceRow {
   source_type: string;
   status: string;
   english_only: number;
+  refresh_posture: string | null;
+  consecutive_failures: number | null;
+  last_attempt_at: string | null;
   created_at: string;
   updated_at: string;
   last_success_at: string | null;
@@ -37,11 +41,22 @@ function assertSourceType(value: string): asserts value is IngestionSourceType {
   }
 }
 
+function mapRefreshPostureColumn(value: string | null | undefined): RefreshPosture | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  if (value === 'manual' || value === 'relaxed' || value === 'normal') {
+    return value;
+  }
+  return null;
+}
+
 function mapRowToSource(row: IngestionSourceRow): IngestionSource {
   assertSourceType(row.source_type);
   if (row.status !== 'enabled' && row.status !== 'paused') {
     throw new Error(`Invalid status in row: ${row.status}`);
   }
+  const failures = row.consecutive_failures ?? 0;
   return {
     id: row.id,
     url: row.url,
@@ -49,6 +64,9 @@ function mapRowToSource(row: IngestionSourceRow): IngestionSource {
     sourceType: row.source_type,
     status: row.status,
     englishOnly: row.english_only === 1,
+    refreshPosture: mapRefreshPostureColumn(row.refresh_posture),
+    consecutiveFailures: failures,
+    lastAttemptAt: row.last_attempt_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     lastSuccessAt: row.last_success_at,
@@ -131,14 +149,26 @@ export function updateSource(id: number, input: IngestionSourceUpdateInput): Ing
   const nextEnglish =
     input.englishOnly !== undefined ? (input.englishOnly ? 1 : 0) : existing.englishOnly ? 1 : 0;
 
+  let refreshSql = '';
+  const params: Record<string, string | number | null> = {
+    id,
+    label: nextLabel,
+    englishOnly: nextEnglish
+  };
+
+  if (input.refreshPosture !== undefined) {
+    refreshSql = ', refresh_posture = @refreshPosture';
+    params['refreshPosture'] = input.refreshPosture;
+  }
+
   const db = getDatabase();
   db.prepare(
     `
     UPDATE ingestion_sources
-    SET label = @label, english_only = @englishOnly, updated_at = datetime('now')
+    SET label = @label, english_only = @englishOnly${refreshSql}, updated_at = datetime('now')
     WHERE id = @id
   `
-  ).run({ id, label: nextLabel, englishOnly: nextEnglish });
+  ).run(params);
 
   const updated = getSourceById(id);
   if (!updated) {
@@ -188,24 +218,55 @@ export function getEnabledSources(): IngestionSource[] {
   return rows.map(mapRowToSource);
 }
 
+export function recordSourceAttempt(id: number): void {
+  const db = getDatabase();
+  db.prepare(
+    `
+    UPDATE ingestion_sources
+    SET last_attempt_at = datetime('now'), updated_at = datetime('now')
+    WHERE id = ?
+  `
+  ).run(id);
+}
+
+export function resetSourceFailures(id: number): void {
+  const db = getDatabase();
+  db.prepare(
+    `
+    UPDATE ingestion_sources
+    SET consecutive_failures = 0, updated_at = datetime('now')
+    WHERE id = ?
+  `
+  ).run(id);
+}
+
+export function recordSourceFailure(id: number, message: string): void {
+  const db = getDatabase();
+  db.prepare(
+    `
+    UPDATE ingestion_sources
+    SET consecutive_failures = consecutive_failures + 1,
+        last_error = @message,
+        updated_at = datetime('now')
+    WHERE id = @id
+  `
+  ).run({ id, message });
+}
+
 export function recordSourceFeedSuccess(id: number): void {
   const db = getDatabase();
   db.prepare(
     `
     UPDATE ingestion_sources
-    SET last_success_at = datetime('now'), last_error = NULL, updated_at = datetime('now')
+    SET last_success_at = datetime('now'),
+        last_error = NULL,
+        consecutive_failures = 0,
+        updated_at = datetime('now')
     WHERE id = ?
   `
   ).run(id);
 }
 
 export function recordSourceFeedFailure(id: number, message: string): void {
-  const db = getDatabase();
-  db.prepare(
-    `
-    UPDATE ingestion_sources
-    SET last_error = @message, updated_at = datetime('now')
-    WHERE id = @id
-  `
-  ).run({ id, message });
+  recordSourceFailure(id, message);
 }

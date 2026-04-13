@@ -7,7 +7,7 @@ import {
   findArticleByFeedItem,
   findArticleByNormalizedUrl
 } from '../articles/repository';
-import { recordSourceFeedFailure, recordSourceFeedSuccess } from '../sources/repository';
+import { recordSourceAttempt, recordSourceFeedFailure, recordSourceFeedSuccess } from '../sources/repository';
 import { isLikelyEnglishText } from './english-heuristic';
 import { normalizeArticleUrl } from './url-normalize';
 
@@ -74,6 +74,7 @@ export async function ingestFeedXml(
   if (source.sourceType !== 'feed') {
     const msg = 'Source is not a feed';
     recordSourceFeedFailure(source.id, msg);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: msg };
   }
 
@@ -83,6 +84,7 @@ export async function ingestFeedXml(
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to parse feed';
     recordSourceFeedFailure(source.id, message);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: message };
   }
 
@@ -168,10 +170,12 @@ export async function ingestFeedXml(
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Feed ingestion failed';
     recordSourceFeedFailure(source.id, message);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: message };
   }
 
   recordSourceFeedSuccess(source.id);
+  recordSourceAttempt(source.id);
   return { ok: true, inserted: counts.inserted, updated: counts.updated, skipped: counts.skipped };
 }
 
@@ -182,12 +186,14 @@ export async function fetchFeed(source: IngestionSource): Promise<FeedRefreshRes
   if (source.status !== 'enabled') {
     const msg = 'Source is not enabled';
     recordSourceFeedFailure(source.id, msg);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: msg };
   }
 
   if (source.sourceType !== 'feed') {
     const msg = 'Source is not a feed';
     recordSourceFeedFailure(source.id, msg);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: msg };
   }
 
@@ -203,6 +209,7 @@ export async function fetchFeed(source: IngestionSource): Promise<FeedRefreshRes
     if (!response.ok) {
       const msg = `HTTP ${response.status}: ${response.statusText}`;
       recordSourceFeedFailure(source.id, msg);
+      recordSourceAttempt(source.id);
       return { ok: false, inserted: 0, updated: 0, skipped: 0, error: msg };
     }
 
@@ -211,6 +218,7 @@ export async function fetchFeed(source: IngestionSource): Promise<FeedRefreshRes
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Feed fetch failed';
     recordSourceFeedFailure(source.id, message);
+    recordSourceAttempt(source.id);
     return { ok: false, inserted: 0, updated: 0, skipped: 0, error: message };
   }
 }

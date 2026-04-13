@@ -5,6 +5,33 @@ function tableHasColumn(db: Database.Database, table: string, column: string): b
   return rows.some((r) => r.name === column);
 }
 
+function migrateIngestionSourcesRefreshColumns(db: Database.Database): void {
+  if (!tableHasColumn(db, 'ingestion_sources', 'refresh_posture')) {
+    db.exec(`
+      ALTER TABLE ingestion_sources ADD COLUMN refresh_posture TEXT CHECK (
+        refresh_posture IS NULL OR refresh_posture IN ('manual', 'relaxed', 'normal')
+      );
+    `);
+  }
+  if (!tableHasColumn(db, 'ingestion_sources', 'consecutive_failures')) {
+    db.exec(`
+      ALTER TABLE ingestion_sources ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0;
+    `);
+  }
+  if (!tableHasColumn(db, 'ingestion_sources', 'last_attempt_at')) {
+    db.exec(`ALTER TABLE ingestion_sources ADD COLUMN last_attempt_at TEXT;`);
+  }
+}
+
+function migrateAppSettings(db: Database.Database): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+}
+
 /** Add article columns for feed ingestion on existing databases (SQLite has no IF NOT EXISTS for ADD COLUMN). */
 function migrateArticlesFeedColumns(db: Database.Database): void {
   if (!tableHasColumn(db, 'articles', 'source_id')) {
@@ -29,10 +56,20 @@ export function createTables(db: Database.Database): void {
       source_type TEXT NOT NULL CHECK (source_type IN ('feed', 'watch')),
       status TEXT NOT NULL DEFAULT 'enabled' CHECK (status IN ('enabled', 'paused')),
       english_only INTEGER NOT NULL DEFAULT 1 CHECK (english_only IN (0, 1)),
+      refresh_posture TEXT CHECK (
+        refresh_posture IS NULL OR refresh_posture IN ('manual', 'relaxed', 'normal')
+      ),
+      consecutive_failures INTEGER NOT NULL DEFAULT 0,
+      last_attempt_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       last_success_at TEXT,
       last_error TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS articles (
@@ -86,6 +123,8 @@ export function createTables(db: Database.Database): void {
   `);
 
   migrateArticlesFeedColumns(db);
+  migrateIngestionSourcesRefreshColumns(db);
+  migrateAppSettings(db);
 
   db.exec(`CREATE INDEX IF NOT EXISTS idx_articles_feed_item_id ON articles(feed_item_id);`);
 }

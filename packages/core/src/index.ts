@@ -13,10 +13,24 @@ export {
   getAllSources,
   getEnabledSources,
   getSourceById,
+  recordSourceAttempt,
+  recordSourceFailure,
+  resetSourceFailures,
   setSourcePaused,
   updateSource
 } from './sources/repository';
 export { fetchFeed, ingestFeedXml } from './ingestion/feed-fetcher';
+export {
+  computeSchedulerDelayMs,
+  getBackoffMultiplier,
+  getEffectiveIntervalMs,
+  getEffectivePosture,
+  getNextDueTime,
+  isSourceDue,
+  pickNextSource,
+  type FeedSchedulerSourceState
+} from './ingestion/feed-scheduler-logic';
+export { getGlobalRefreshPosture, getSetting, setGlobalRefreshPosture, setSetting } from './settings/repository';
 export {
   createLookup,
   getAllLookups,

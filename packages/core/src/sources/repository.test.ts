@@ -46,6 +46,9 @@ describe('ingestion sources repository', () => {
     expect(feed.sourceType).toBe('feed');
     expect(feed.url).toBe('https://example.com/feed.xml');
     expect(feed.status).toBe('enabled');
+    expect(feed.refreshPosture).toBeNull();
+    expect(feed.consecutiveFailures).toBe(0);
+    expect(feed.lastAttemptAt).toBeNull();
 
     const watch = createSource({
       url: 'https://news.example.com/latest',
