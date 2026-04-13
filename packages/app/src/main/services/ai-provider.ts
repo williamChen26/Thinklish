@@ -1,19 +1,12 @@
-import { spawn, execFile, type ChildProcess } from 'child_process';
-import { promisify } from 'util';
 import type { LookupType } from '@thinklish/shared';
+import { findFirstAvailableAgent, getAvailableAgents } from './acp-agents';
+import { queryViaAcp, type AcpQueryHandle } from './acp-connection';
 import skillRaw from './english-intuition.md?raw';
-
-const execFileAsync = promisify(execFile);
 
 export interface StreamCallbacks {
   onChunk: (chunk: string) => void;
   onDone: (fullText: string) => void;
   onError: (error: string) => void;
-}
-
-interface CliInfo {
-  cmd: string;
-  supportsStreamJson: boolean;
 }
 
 function stripFrontmatter(raw: string): string {
@@ -66,159 +59,67 @@ function buildFullPrompt(input: {
   return `${skillContent}\n\n---\n\n# 用户请求\n\n${buildUserMessage(input)}`;
 }
 
-async function findCli(): Promise<CliInfo | null> {
-  const candidates: CliInfo[] = [
-    { cmd: 'claude', supportsStreamJson: true },
-    { cmd: 'codex', supportsStreamJson: false }
-  ];
+const TIMEOUT_MS = 60_000;
 
-  for (const candidate of candidates) {
-    try {
-      await execFileAsync('which', [candidate.cmd]);
-      return candidate;
-    } catch {
-      continue;
-    }
-  }
-  return null;
+export interface ExplainResult {
+  handle: AcpQueryHandle | null;
+  agentName: string;
 }
 
-function buildCliArgs(cli: CliInfo, userMessage: string): string[] {
-  if (cli.supportsStreamJson) {
-    return [
-      '-p',
-      '--verbose',
-      '--output-format', 'stream-json',
-      '--include-partial-messages',
-      '--system-prompt', skillContent,
-      userMessage
-    ];
-  }
-  return ['-q', `${skillContent}\n\n---\n\n# 用户请求\n\n${userMessage}`];
-}
-
-function parseStreamJsonLine(line: string): string | null {
-  try {
-    const obj = JSON.parse(line) as Record<string, unknown>;
-
-    if (obj.type === 'stream_event') {
-      const event = obj.event as Record<string, unknown> | undefined;
-      if (event?.type === 'content_block_delta') {
-        const delta = event.delta as Record<string, unknown> | undefined;
-        if (delta?.type === 'text_delta' && typeof delta.text === 'string') {
-          return delta.text;
-        }
-      }
-    }
-
-    if (obj.type === 'result' && typeof obj.result === 'string') {
-      return null;
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function extractResultText(line: string): string | null {
-  try {
-    const obj = JSON.parse(line) as Record<string, unknown>;
-    if (obj.type === 'result' && typeof obj.result === 'string') {
-      return obj.result;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export async function explainTextStream(
+export function explainTextStream(
   input: { selectedText: string; contextBefore: string; contextAfter: string },
-  callbacks: StreamCallbacks
-): Promise<ChildProcess | null> {
+  aiProvider: string,
+  callbacks: StreamCallbacks,
+): ExplainResult {
+  const agent = aiProvider === 'auto'
+    ? findFirstAvailableAgent()
+    : getAvailableAgents().find((a) => a.adapter.id === aiProvider) ?? null;
+
+  if (!agent || agent.status !== 'ready' || !agent.entry) {
+    const hints = getAvailableAgents()
+      .map((a) => `• ${a.adapter.name}: ${a.installHint.split(': ')[1] ?? a.adapter.installUrl}`)
+      .join('\n');
+    const msg = aiProvider === 'auto'
+      ? `未找到可用的 AI Agent。请安装以下任一工具：\n${hints}`
+      : `AI Agent "${aiProvider}" 未安装或不可用。`;
+    callbacks.onError(msg);
+    return { handle: null, agentName: '' };
+  }
+
   const mode = detectMode(input.selectedText);
-  const userMessage = buildUserMessage({ ...input, mode });
+  const prompt = buildFullPrompt({ ...input, mode });
 
-  const cli = await findCli();
-  if (!cli) {
-    callbacks.onError(
-      '未找到 Claude CLI 或 Codex CLI。请先安装：\n• Claude: https://docs.anthropic.com/en/docs/claude-code\n• Codex: https://github.com/openai/codex'
-    );
-    return null;
-  }
+  let settled = false;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  const args = buildCliArgs(cli, userMessage);
-  const child = spawn(cli.cmd, args, {
-    env: { ...process.env, TERM: 'dumb' },
-    stdio: ['ignore', 'pipe', 'pipe']
-  });
-
-  let streamedText = '';
-  let resultText: string | null = null;
-  let timedOut = false;
-
-  const timeout = setTimeout(() => {
-    timedOut = true;
-    child.kill('SIGTERM');
-  }, 60000);
-
-  if (cli.supportsStreamJson) {
-    let lineBuffer = '';
-
-    child.stdout!.on('data', (data: Buffer) => {
-      lineBuffer += data.toString();
-      const lines = lineBuffer.split('\n');
-      lineBuffer = lines.pop() ?? '';
-
-      for (const line of lines) {
-        if (!line.trim()) continue;
-
-        const text = parseStreamJsonLine(line);
-        if (text) {
-          streamedText += text;
-          callbacks.onChunk(text);
-        }
-
-        const result = extractResultText(line);
-        if (result) {
-          resultText = result;
-        }
-      }
-    });
-  } else {
-    child.stdout!.on('data', (data: Buffer) => {
-      const chunk = data.toString();
-      streamedText += chunk;
+  const wrappedCallbacks: StreamCallbacks = {
+    onChunk: (chunk) => {
       callbacks.onChunk(chunk);
-    });
-  }
+    },
+    onDone: (fullText) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      callbacks.onDone(fullText);
+    },
+    onError: (error) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      callbacks.onError(error);
+    },
+  };
 
-  child.on('close', (code) => {
-    clearTimeout(timeout);
+  const handle = queryViaAcp(agent.entry, prompt, wrappedCallbacks);
 
-    if (timedOut) {
-      callbacks.onError('AI 响应超时（60 秒），请重试');
-      return;
-    }
+  timeout = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    handle.cancel();
+    callbacks.onError('AI 响应超时（60 秒），请重试');
+  }, TIMEOUT_MS);
 
-    const finalText = (resultText ?? streamedText).trim();
-
-    if (finalText) {
-      callbacks.onDone(finalText);
-    } else if (code === 0) {
-      callbacks.onError('AI 返回了空响应，请重试');
-    } else {
-      callbacks.onError(`AI 调用失败 (exit code: ${code ?? 'unknown'})`);
-    }
-  });
-
-  child.on('error', (err) => {
-    clearTimeout(timeout);
-    callbacks.onError(`AI 调用失败: ${err.message}`);
-  });
-
-  return child;
+  return { handle, agentName: agent.adapter.name };
 }
 
 export { detectMode, buildFullPrompt };

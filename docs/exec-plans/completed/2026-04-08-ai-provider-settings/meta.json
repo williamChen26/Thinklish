@@ -1,0 +1,38 @@
+{
+  "id": "2026-04-08-ai-provider-settings",
+  "status": "completed",
+  "task": "接入 Cursor ACP 适配器，添加 AI 工具选择设置，浮窗显示当前 AI 工具名，修复浮窗超出可视区定位问题。",
+  "created_at": "2026-04-08T00:00:00Z",
+  "updated_at": "2026-04-08T01:00:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "Cursor ACP Native Agent Registration", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "AI Provider Settings System", "status": "completed", "priority": "P0" },
+    { "id": "F3", "name": "FloatingPanel AI Provider Display", "status": "completed", "priority": "P0" },
+    { "id": "F4", "name": "FloatingPanel Viewport Clamping Fix", "status": "completed", "priority": "P0" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_id": "F1", "rounds": 1, "verdict": "passed", "started": "2026-04-08T00:10:00Z", "completed": "2026-04-08T00:15:00Z" },
+    { "number": 2, "feature_id": "F4", "rounds": 1, "verdict": "passed", "started": "2026-04-08T00:15:00Z", "completed": "2026-04-08T00:20:00Z" },
+    { "number": 3, "feature_id": "F2", "rounds": 1, "verdict": "passed", "started": "2026-04-08T00:20:00Z", "completed": "2026-04-08T00:25:00Z" },
+    { "number": 4, "feature_id": "F3", "rounds": 1, "verdict": "passed", "started": "2026-04-08T00:25:00Z", "completed": "2026-04-08T00:30:00Z" }
+  ],
+  "hotfixes": [
+    {
+      "id": "HF1",
+      "affects_feature": "F1",
+      "affects_sprint": 1,
+      "title": "Cursor ACP 初始化卡死: cursor → cursor-agent",
+      "date": "2026-04-08",
+      "files": ["packages/app/src/main/services/acp-agents.ts"]
+    },
+    {
+      "id": "HF2",
+      "affects_feature": "F4",
+      "affects_sprint": 2,
+      "title": "浮窗位置跳动: useLayoutEffect → useMemo 一次性定位",
+      "date": "2026-04-08",
+      "files": ["packages/app/src/renderer/src/components/ai/FloatingPanel.tsx"]
+    }
+  ]
+}

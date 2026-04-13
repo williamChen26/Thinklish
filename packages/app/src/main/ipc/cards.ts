@@ -5,6 +5,8 @@ import {
   getAllCards,
   getCardByLookupId,
   getDueCards,
+  getCardsWithBucket,
+  getCardStats,
   updateCardReview,
   exportCardsAsTsv,
   generateCardFromLookup,
@@ -32,8 +34,16 @@ export function registerCardHandlers(): void {
     return getAllCards();
   });
 
+  ipcMain.handle('cards:getAllWithBucket', () => {
+    return getCardsWithBucket();
+  });
+
   ipcMain.handle('cards:getDue', () => {
     return getDueCards();
+  });
+
+  ipcMain.handle('cards:getStats', () => {
+    return getCardStats();
   });
 
   ipcMain.handle('cards:review', (_event, id: number, interval: number, repetitions: number, easeFactor: number) => {

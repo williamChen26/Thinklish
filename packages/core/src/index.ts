@@ -2,10 +2,46 @@ export { initDatabase, getDatabase, closeDatabase } from './database/connection'
 export { createTables } from './database/schema';
 export {
   createArticle,
+  fillArticleFromExtraction,
   getAllArticles,
   getArticleById,
   deleteArticle
 } from './articles/repository';
+export {
+  createSource,
+  deleteSource,
+  getAllSources,
+  getEnabledSources,
+  getSourceById,
+  recordSourceAttempt,
+  recordSourceFailure,
+  resetSourceFailures,
+  setSourcePaused,
+  updateSource
+} from './sources/repository';
+export { fetchFeed, ingestFeedXml } from './ingestion/feed-fetcher';
+export { discoverFeeds, extractAlternateFeedsFromHtml } from './ingestion/feed-discovery';
+export {
+  computeSchedulerDelayMs,
+  getBackoffMultiplier,
+  getEffectiveInterval,
+  getEffectiveIntervalMs,
+  getEffectivePosture,
+  getNextDueTime,
+  isSourceDue,
+  pickNextSource,
+  type FeedSchedulerSourceState
+} from '@thinklish/shared';
+export { getGlobalRefreshPosture, getSetting, setGlobalRefreshPosture, setSetting } from './settings/repository';
+export {
+  deleteArticlesBySource,
+  getRetentionCleanupPreview,
+  getRetentionPolicy,
+  getSourceArticlesDeleteImpact,
+  getStorageStats,
+  runRetentionCleanup,
+  setRetentionPolicy
+} from './storage/retention';
 export {
   createLookup,
   getAllLookups,
@@ -19,6 +55,8 @@ export {
   getCardById,
   getCardByLookupId,
   getDueCards,
+  getCardsWithBucket,
+  getCardStats,
   updateCardReview,
   exportCardsAsTsv
 } from './cards/repository';

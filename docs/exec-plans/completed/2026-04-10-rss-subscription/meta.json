@@ -1,0 +1,36 @@
+{
+  "id": "2026-04-10-rss-subscription",
+  "status": "completed",
+  "task": "实现 RSS 订阅功能：1. 支持订阅标准 RSS/Atom Feed；2. 对不支持 RSS 的网站，支持生成 RSS 订阅。要求兼顾产品思路合理性和性能。",
+  "created_at": "2026-04-10T12:00:00Z",
+  "updated_at": "2026-04-13T12:20:00Z",
+  "spec_features": [
+    { "id": "F1", "name": "Ingestion source registry (feeds & watched targets)", "status": "completed", "priority": "P0" },
+    { "id": "F2", "name": "RSS/Atom ingestion into unified article library", "status": "completed", "priority": "P0" },
+    { "id": "F3", "name": "Scheduled refresh, fairness, and UI non-interference", "status": "completed", "priority": "P0" },
+    { "id": "F4", "name": "Synthetic / virtual feed path for non-RSS sites", "status": "completed", "priority": "P1" },
+    { "id": "F5", "name": "Storage governance and library growth control", "status": "completed", "priority": "P1" },
+    { "id": "F6", "name": "Integrated UX: coexistence with paste URL and status surfaces", "status": "completed", "priority": "P1" },
+    { "id": "F7", "name": "Feed discovery assistance (optional)", "status": "completed", "priority": "P2" }
+  ],
+  "current_sprint": null,
+  "sprint_history": [
+    { "number": 1, "feature_id": "F1", "rounds": 1, "verdict": "passed", "started": "2026-04-10T12:45:00Z", "completed": "2026-04-10T14:00:00Z" },
+    { "number": 2, "feature_id": "F2", "rounds": 1, "verdict": "passed", "started": "2026-04-10T14:00:00Z", "completed": "2026-04-10T15:00:00Z" },
+    { "number": 3, "feature_id": "F3", "rounds": 2, "verdict": "passed", "started": "2026-04-10T15:00:00Z", "completed": "2026-04-10T16:30:00Z" },
+    { "number": 4, "feature_id": "F6", "rounds": 1, "verdict": "passed", "started": "2026-04-10T16:30:00Z", "completed": "2026-04-10T17:00:00Z" },
+    { "number": 5, "feature_id": "F5", "rounds": 1, "verdict": "passed", "started": "2026-04-10T17:00:00Z", "completed": "2026-04-10T17:30:00Z" },
+    { "number": 6, "feature_id": "F4", "rounds": 1, "verdict": "passed", "started": "2026-04-10T17:30:00Z", "completed": "2026-04-10T18:00:00Z" },
+    { "number": 7, "feature_id": "F7", "rounds": 1, "verdict": "passed", "started": "2026-04-10T18:00:00Z", "completed": "2026-04-13T11:50:00Z" }
+  ],
+  "hotfixes": [
+    {
+      "id": "HF1",
+      "affects_feature": "F2",
+      "affects_sprint": "2",
+      "title": "已有数据库启动时 createTables 崩溃 (idx on unmigrated column)",
+      "date": "2026-04-13",
+      "files": ["packages/core/src/database/schema.ts"]
+    }
+  ]
+}

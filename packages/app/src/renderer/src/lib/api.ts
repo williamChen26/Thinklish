@@ -1,12 +1,41 @@
-import type { Article, ArticleCreateInput, Lookup, LookupCreateInput, LookupType, MasteryStatus } from '@thinklish/shared';
+import type {
+  Article,
+  ArticleCreateInput,
+  CardStats,
+  CardWithBucket,
+  DiscoveredFeed,
+  FeedRefreshResult,
+  IngestionSource,
+  IngestionSourceCreateInput,
+  IngestionSourceUpdateInput,
+  Lookup,
+  LookupCreateInput,
+  LookupType,
+  MasteryStatus,
+  RefreshAllResult,
+  RefreshPosture,
+  RefreshProgressEvent,
+  RetentionCleanupPreview,
+  RetentionCleanupResult,
+  RetentionPolicy,
+  SourceArticlesDeleteImpact,
+  StorageStats
+} from '@thinklish/shared';
 
 export type AddArticleResult =
   | { success: true; article: Article }
   | { success: false; error: string };
 
 export type AiStreamStartResult =
-  | { success: true; streamId: string }
+  | { success: true; streamId: string; agentName: string }
   | { success: false; error: string };
+
+export interface AgentInfo {
+  id: string;
+  name: string;
+  status: 'ready' | 'not_found';
+  installUrl: string;
+}
 
 export interface AiStreamChunkEvent {
   streamId: string;
@@ -15,6 +44,13 @@ export interface AiStreamChunkEvent {
   fullText?: string;
   error?: string;
 }
+
+export type FeedDiscoverResponse = { feeds: DiscoveredFeed[] };
+
+export const feedsAPI = {
+  discover: (url: string): Promise<FeedDiscoverResponse> =>
+    window.electron.invoke('feeds:discover', url) as Promise<FeedDiscoverResponse>
+};
 
 export const articlesAPI = {
   add: (url: string): Promise<AddArticleResult> =>
@@ -34,10 +70,14 @@ export const articlesAPI = {
 };
 
 export const aiAPI = {
+  getAgents: (): Promise<AgentInfo[]> =>
+    window.electron.invoke('ai:getAgents') as Promise<AgentInfo[]>,
+
   explain: (input: {
     selectedText: string;
     contextBefore: string;
     contextAfter: string;
+    aiProvider: string;
   }): Promise<AiStreamStartResult> =>
     window.electron.invoke('ai:explain', input) as Promise<AiStreamStartResult>,
 
@@ -62,6 +102,106 @@ export const lookupsAPI = {
     window.electron.invoke('lookups:updateStatus', id, status) as Promise<void>
 };
 
+export type CreateSourceResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type UpdateSourceResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type SetSourcePausedResult =
+  | { success: true; source: IngestionSource }
+  | { success: false; error: string };
+
+export type DeleteSourceResult = { success: true } | { success: false; error: string };
+
+export const sourcesAPI = {
+  list: (): Promise<IngestionSource[]> =>
+    window.electron.invoke('sources:list') as Promise<IngestionSource[]>,
+
+  create: (input: IngestionSourceCreateInput): Promise<CreateSourceResult> =>
+    window.electron.invoke('sources:create', input) as Promise<CreateSourceResult>,
+
+  update: (id: number, input: IngestionSourceUpdateInput): Promise<UpdateSourceResult> =>
+    window.electron.invoke('sources:update', id, input) as Promise<UpdateSourceResult>,
+
+  setPaused: (id: number, paused: boolean): Promise<SetSourcePausedResult> =>
+    window.electron.invoke('sources:setPaused', id, paused) as Promise<SetSourcePausedResult>,
+
+  delete: (id: number): Promise<DeleteSourceResult> =>
+    window.electron.invoke('sources:delete', id) as Promise<DeleteSourceResult>,
+
+  refreshFeed: (id: number): Promise<FeedRefreshResult> =>
+    window.electron.invoke('sources:refreshFeed', id) as Promise<FeedRefreshResult>,
+
+  getGlobalPosture: (): Promise<RefreshPosture> =>
+    window.electron.invoke('sources:getGlobalPosture') as Promise<RefreshPosture>,
+
+  setGlobalPosture: (
+    posture: RefreshPosture
+  ): Promise<{ success: true } | { success: false; error: string }> =>
+    window.electron.invoke('sources:setGlobalPosture', posture) as Promise<
+      { success: true } | { success: false; error: string }
+    >,
+
+  refreshAll: (): Promise<RefreshAllResult> =>
+    window.electron.invoke('sources:refreshAll') as Promise<RefreshAllResult>,
+
+  onRefreshProgress: (callback: (event: RefreshProgressEvent) => void): (() => void) =>
+    window.electron.on('sources:refreshProgress', (...args: unknown[]) => {
+      const first = args[0];
+      if (first && typeof first === 'object' && 'phase' in first) {
+        callback(first as RefreshProgressEvent);
+      }
+    }),
+
+  deleteWithArticlesPreview: (
+    id: number
+  ): Promise<{ success: true; impact: SourceArticlesDeleteImpact } | { success: false; error: string }> =>
+    window.electron.invoke('sources:deleteWithArticlesPreview', id) as Promise<
+      { success: true; impact: SourceArticlesDeleteImpact } | { success: false; error: string }
+    >,
+
+  deleteWithArticles: (
+    id: number
+  ): Promise<{ success: true; deletedCount: number } | { success: false; error: string }> =>
+    window.electron.invoke('sources:deleteWithArticles', id) as Promise<
+      { success: true; deletedCount: number } | { success: false; error: string }
+    >
+};
+
+export const storageAPI = {
+  getStats: (): Promise<StorageStats> => window.electron.invoke('storage:getStats') as Promise<StorageStats>,
+
+  getRetentionPolicy: (): Promise<RetentionPolicy> =>
+    window.electron.invoke('storage:getRetentionPolicy') as Promise<RetentionPolicy>,
+
+  setRetentionPolicy: (
+    policy: RetentionPolicy
+  ): Promise<{ success: true; policy: RetentionPolicy } | { success: false; error: string }> =>
+    window.electron.invoke('storage:setRetentionPolicy', policy) as Promise<
+      { success: true; policy: RetentionPolicy } | { success: false; error: string }
+    >,
+
+  getCleanupPreview: (
+    policy?: RetentionPolicy
+  ): Promise<
+    | { success: true; preview: RetentionCleanupPreview }
+    | { success: false; error: string }
+  > => window.electron.invoke('storage:getCleanupPreview', policy) as Promise<
+    { success: true; preview: RetentionCleanupPreview } | { success: false; error: string }
+  >,
+
+  runCleanup: (
+    policy?: RetentionPolicy
+  ): Promise<
+    { success: true; result: RetentionCleanupResult } | { success: false; error: string }
+  > => window.electron.invoke('storage:runCleanup', policy) as Promise<
+    { success: true; result: RetentionCleanupResult } | { success: false; error: string }
+  >
+};
+
 export const cardsAPI = {
   generateFromLookup: (lookupId: number): Promise<{ success: true; card: unknown; alreadyExists: boolean } | { success: false; error: string }> =>
     window.electron.invoke('cards:generateFromLookup', lookupId) as Promise<{ success: true; card: unknown; alreadyExists: boolean } | { success: false; error: string }>,
@@ -69,8 +209,14 @@ export const cardsAPI = {
   getAll: (): Promise<unknown[]> =>
     window.electron.invoke('cards:getAll') as Promise<unknown[]>,
 
+  getAllWithBucket: (): Promise<CardWithBucket[]> =>
+    window.electron.invoke('cards:getAllWithBucket') as Promise<CardWithBucket[]>,
+
   getDue: (): Promise<unknown[]> =>
     window.electron.invoke('cards:getDue') as Promise<unknown[]>,
+
+  getStats: (): Promise<CardStats> =>
+    window.electron.invoke('cards:getStats') as Promise<CardStats>,
 
   review: (id: number, interval: number, repetitions: number, easeFactor: number): Promise<void> =>
     window.electron.invoke('cards:review', id, interval, repetitions, easeFactor) as Promise<void>,

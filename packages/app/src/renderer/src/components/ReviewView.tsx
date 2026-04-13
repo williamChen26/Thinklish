@@ -96,9 +96,9 @@ export function ReviewView(): JSX.Element {
   const card = dueCards[currentIndex];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-8">
+    <div className="flex-1 flex flex-col items-center justify-center overflow-y-auto px-8 py-6">
       {/* Progress */}
-      <div className="w-full max-w-lg mb-6">
+      <div className="w-full max-w-lg mb-6 shrink-0">
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
           <span>{currentIndex + 1} / {dueCards.length}</span>
           <span>{dueCards.length - currentIndex} remaining</span>
@@ -115,11 +115,12 @@ export function ReviewView(): JSX.Element {
       <div
         onClick={() => setFlipped(!flipped)}
         className={cn(
-          'w-full max-w-lg min-h-[280px] rounded-xl border-2 border-border',
+          'w-full max-w-lg min-h-[280px] max-h-[60vh] rounded-xl border-2 border-border',
           'bg-card text-card-foreground p-8',
           'cursor-pointer select-none transition-all duration-200',
           'hover:border-primary/30 hover:shadow-lg',
-          'flex flex-col items-center justify-center'
+          'flex flex-col items-center overflow-y-auto',
+          flipped ? 'justify-start' : 'justify-center'
         )}
       >
         {!flipped ? (
@@ -141,7 +142,7 @@ export function ReviewView(): JSX.Element {
 
       {/* Rating buttons */}
       {flipped && (
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 shrink-0">
           <button
             type="button"
             onClick={() => handleRate('forgot')}

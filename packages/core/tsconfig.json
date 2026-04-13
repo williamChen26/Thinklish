@@ -6,5 +6,6 @@
       "@thinklish/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

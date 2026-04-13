@@ -10,7 +10,7 @@ Thinklish 是一个基于 Electron 的桌面应用，采用 pnpm monorepo 架构
 - **Frontend**: React 18 + TypeScript 5 + Tailwind CSS 3
 - **Build**: Turborepo + electron-vite 5 (Vite for renderer, SWC for main/preload)
 - **Database**: SQLite (better-sqlite3 v12, WAL mode)
-- **AI**: Claude Code CLI / Codex CLI (通过 child_process 调用)
+- **AI**: ACP (Agent Client Protocol) — 通过 `@agentclientprotocol/sdk` 与 Claude Code / Codex CLI 适配器通信
 - **Lint**: ESLint 9 flat config + typescript-eslint
 
 ## 包结构
@@ -89,6 +89,10 @@ shared ← app/renderer
 | `cards:getDue` | renderer → main | 获取待复习卡片 |
 | `cards:review` | renderer → main | 提交复习结果 |
 | `cards:exportTsv` | renderer → main | 导出 TSV 文件 |
+| `sources:getGlobalPosture` | renderer → main | 全局 RSS 刷新节奏 |
+| `sources:setGlobalPosture` | renderer → main | 设置全局刷新节奏并重启调度 |
+| `sources:refreshAll` | renderer → main | 手动刷新全部订阅源 |
+| `sources:refreshProgress` | main → renderer | 批量刷新进度（push） |
 
 ## 数据模型
 

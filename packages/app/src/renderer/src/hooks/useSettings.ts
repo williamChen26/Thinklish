@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 export type Theme = 'light' | 'dark';
 export type FontSize = 'small' | 'medium' | 'large';
 export type ContentWidth = 'narrow' | 'medium' | 'wide';
+export type AiProvider = 'auto' | 'claude' | 'codex' | 'cursor';
 
 export interface ReaderSettings {
   theme: Theme;
   fontSize: FontSize;
   contentWidth: ContentWidth;
+  aiProvider: AiProvider;
 }
 
 const STORAGE_KEY = 'thinklish-settings';
@@ -15,7 +17,8 @@ const STORAGE_KEY = 'thinklish-settings';
 const DEFAULT_SETTINGS: ReaderSettings = {
   theme: 'light',
   fontSize: 'medium',
-  contentWidth: 'medium'
+  contentWidth: 'medium',
+  aiProvider: 'auto'
 };
 
 function loadSettings(): ReaderSettings {

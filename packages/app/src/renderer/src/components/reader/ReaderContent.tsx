@@ -96,6 +96,7 @@ export function ReaderContent({
       {selection && (
         <FloatingPanel
           selection={selection}
+          aiProvider={settings.aiProvider}
           onClose={clearSelection}
           onSave={handleSave}
         />

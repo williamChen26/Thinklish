@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { TextSelection } from '../../hooks/useTextSelection';
@@ -7,17 +7,19 @@ import { cn } from '../../lib/utils';
 
 interface FloatingPanelProps {
   selection: TextSelection;
+  aiProvider: string;
   onClose: () => void;
   onSave: (selectedText: string, aiResponse: string, contextBefore: string, contextAfter: string) => void;
 }
 
 type PanelState = 'loading' | 'streaming' | 'success' | 'error';
 
-export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps): JSX.Element {
+export function FloatingPanel({ selection, aiProvider, onClose, onSave }: FloatingPanelProps): JSX.Element {
   const [state, setState] = useState<PanelState>('loading');
   const [content, setContent] = useState('');
   const [fullResponse, setFullResponse] = useState('');
   const [error, setError] = useState('');
+  const [agentName, setAgentName] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const streamIdRef = useRef<string | null>(null);
   const unsubRef = useRef<(() => void) | null>(null);
@@ -74,7 +76,8 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
     const result = await aiAPI.explain({
       selectedText: selection.text,
       contextBefore: selection.contextBefore,
-      contextAfter: selection.contextAfter
+      contextAfter: selection.contextAfter,
+      aiProvider,
     });
 
     if (!result.success) {
@@ -86,13 +89,14 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
 
     streamIdRef.current = result.streamId;
     resolvedStreamId = result.streamId;
+    setAgentName(result.agentName);
 
     for (const buffered of earlyBuffer) {
       if (buffered.streamId === resolvedStreamId) {
         processEvent(buffered);
       }
     }
-  }, [selection, cleanup]);
+  }, [selection, aiProvider, cleanup]);
 
   useEffect(() => {
     startStream();
@@ -123,15 +127,19 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
     onClose();
   }, [cleanup, onClose]);
 
+  const panelStyle = useMemo(
+    () => computePosition(selection.rect),
+    [selection.rect],
+  );
+
   const displayContent = state === 'success' ? fullResponse : content;
-  const panelStyle = computePosition(selection.rect);
 
   return (
     <div
       ref={panelRef}
       style={panelStyle}
       className={cn(
-        'fixed z-50 w-[420px] max-h-[480px] overflow-auto',
+        'fixed z-50 w-[420px] overflow-auto',
         'bg-popover text-popover-foreground',
         'border border-border rounded-xl shadow-xl',
         'animate-in fade-in-0 zoom-in-95 duration-150'
@@ -143,6 +151,11 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
           &ldquo;{selection.text.length > 40 ? selection.text.slice(0, 40) + '...' : selection.text}&rdquo;
         </span>
         <div className="flex items-center gap-1">
+          {agentName && (
+            <span className="text-[10px] text-muted-foreground/60 px-1.5 py-0.5 rounded bg-muted/50 mr-1 select-none">
+              {agentName}
+            </span>
+          )}
           {state === 'success' && (
             <button
               type="button"
@@ -206,23 +219,39 @@ export function FloatingPanel({ selection, onClose, onSave }: FloatingPanelProps
   );
 }
 
+const PANEL_PADDING = 12;
+const PANEL_WIDTH = 420;
+const PANEL_MAX_HEIGHT = 480;
+const PANEL_MIN_HEIGHT = 120;
+
 function computePosition(rect: DOMRect): React.CSSProperties {
-  const padding = 12;
-  const panelWidth = 420;
-  const panelEstimatedHeight = 300;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
-  let top = rect.bottom + padding;
-  let left = rect.left + rect.width / 2 - panelWidth / 2;
+  let left = rect.left + rect.width / 2 - PANEL_WIDTH / 2;
+  left = Math.max(PANEL_PADDING, Math.min(left, vw - PANEL_WIDTH - PANEL_PADDING));
 
-  if (left < padding) left = padding;
-  if (left + panelWidth > window.innerWidth - padding) {
-    left = window.innerWidth - panelWidth - padding;
+  const spaceBelow = vh - rect.bottom - PANEL_PADDING * 2;
+  const spaceAbove = rect.top - PANEL_PADDING * 2;
+
+  let top: number;
+  let maxHeight: number;
+
+  if (spaceBelow >= PANEL_MAX_HEIGHT) {
+    top = rect.bottom + PANEL_PADDING;
+    maxHeight = PANEL_MAX_HEIGHT;
+  } else if (spaceAbove >= PANEL_MAX_HEIGHT) {
+    top = rect.top - PANEL_MAX_HEIGHT - PANEL_PADDING;
+    maxHeight = PANEL_MAX_HEIGHT;
+  } else if (spaceBelow >= spaceAbove) {
+    top = rect.bottom + PANEL_PADDING;
+    maxHeight = Math.max(spaceBelow, PANEL_MIN_HEIGHT);
+  } else {
+    maxHeight = Math.max(spaceAbove, PANEL_MIN_HEIGHT);
+    top = rect.top - maxHeight - PANEL_PADDING;
   }
 
-  if (top + panelEstimatedHeight > window.innerHeight - padding) {
-    top = rect.top - panelEstimatedHeight - padding;
-    if (top < padding) top = padding;
-  }
+  top = Math.max(PANEL_PADDING, top);
 
-  return { top, left };
+  return { top, left, maxHeight };
 }

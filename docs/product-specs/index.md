@@ -4,6 +4,8 @@
 
 ## 当前文档
 
+- [`acp-ai-provider.md`](acp-ai-provider.md): AI 调用层迁移至 ACP 协议
+
 ## 约定
 
 1. 每份规格都要说明用户问题与验收标准。

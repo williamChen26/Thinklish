@@ -36,6 +36,7 @@
 | `/planner <需求>` | 仅规划，生成 spec |
 | `/generator contract/build <run-id>` | 提合同 / 实现 sprint |
 | `/evaluator contract/sprint <run-id>` | 审合同 / 验收 sprint |
+| `/hotfix [run-id] <bug>` | 轻量级 bug 修复（有 run-id 关联 harness 运行，无则通用模式） |
 
 ### 智能体定义
 

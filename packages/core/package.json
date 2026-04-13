@@ -12,14 +12,20 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "test": "ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
     "lint": "eslint src/"
   },
   "dependencies": {
     "@thinklish/shared": "workspace:*",
-    "better-sqlite3": "^12.8.0"
+    "better-sqlite3": "^12.8.0",
+    "jsdom": "^29.0.1",
+    "rss-parser": "3.13.0"
   },
   "devDependencies": {
+    "@types/jsdom": "^28.0.1",
     "@types/better-sqlite3": "^7.6.0",
-    "typescript": "^5.6.0"
+    "electron": "^40.8.5",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.4"
   }
 }

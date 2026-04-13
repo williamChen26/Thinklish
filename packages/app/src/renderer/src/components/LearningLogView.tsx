@@ -51,8 +51,12 @@ export function LearningLogView(): JSX.Element {
 
   const handleGenerateCard = async (lookupId: number): Promise<void> => {
     const result = await cardsAPI.generateFromLookup(lookupId);
-    if (result.success && result.alreadyExists) {
+    if (!result.success) {
+      alert(`Failed to generate card: ${result.error}`);
+    } else if (result.alreadyExists) {
       alert('Card already exists for this entry');
+    } else {
+      alert('Card created! It will be available for review tomorrow.');
     }
   };
 

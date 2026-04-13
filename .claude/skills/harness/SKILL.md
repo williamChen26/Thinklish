@@ -88,7 +88,8 @@ For each pending feature in `spec_features`:
    - `build-log.md` (cross-reference, don't trust)
    - Actual code changes + independent test run
    - Writes `evaluation.md`, if FAIL also `iterations/round-M/feedback.md`
-2. Process verdict:
+2. **File gate**: Verify `sprints/sprint-<N>/evaluation.md` exists after Evaluator returns. If missing, re-spawn Evaluator with explicit instruction to write `evaluation.md`. An evaluation without this file is invalid.
+3. Process verdict:
    - **PASS** → mark feature as `"completed"` in meta, proceed to next feature
    - **FAIL + rounds remain** → `status → "revising"`, loop to 2b
    - **FAIL + max rounds** → mark sprint failed, decide: skip or escalate
